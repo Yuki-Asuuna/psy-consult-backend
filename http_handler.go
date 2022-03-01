@@ -5,6 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"psy-consult-backend/constant"
+	"psy-consult-backend/exception"
 	"psy-consult-backend/service"
 )
 
@@ -26,7 +27,12 @@ func Cors() gin.HandlerFunc {
 
 func httpHandlerInit() {
 	logrus.Info(constant.Main + "Init httpHandlerInit")
+	// 支持跨域访问
 	r.Use(Cors())
 	r.GET("/ping", service.Ping)
-
+	imGroup := r.Group("/im")
+	imGroup.Use(exception.ErrorHandlingMiddleware)
+	{
+		imGroup.GET("/sign", service.GetUserSign)
+	}
 }
