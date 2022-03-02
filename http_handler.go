@@ -30,16 +30,17 @@ func httpHandlerInit() {
 	// 支持跨域访问
 	r.Use(Cors())
 	r.GET("/ping", service.Ping)
-
+	r.GET("/home", service.Home)
 	imGroup := r.Group("/im")
 	imGroup.Use(exception.ErrorHandlingMiddleware)
 	{
 		imGroup.GET("/sign", service.GetUserSign)
 	}
 
-	//authGroup := r.Group("/auth")
-	//{
-	//	authGroup.GET()
-	//}
+	authGroup := r.Group("/auth")
+	{
+		authGroup.POST("/login", service.Login)
+		authGroup.POST("/logout", service.Logout)
+	}
 
 }

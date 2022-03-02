@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"psy-consult-backend/constant"
+	"psy-consult-backend/utils/mysql"
+	"psy-consult-backend/utils/sessions"
 )
 
 var r *gin.Engine
@@ -33,6 +35,20 @@ func main() {
 
 	// handler init
 	httpHandlerInit()
+
+	// init session
+	if err := sessions.SessionInit(); err != nil {
+		logrus.Errorf(constant.Main+"Init Session Failed, err= %v", err)
+		return
+	}
+	logrus.Infof(constant.Main + "Init Session Success!")
+
+	// init mysql database
+	if err := mysql.MysqlInit(); err != nil {
+		logrus.Error(constant.Main+"Init Mysql Failed, err= %v", err)
+		return
+	}
+	logrus.Infof(constant.Main + "Init Mysql Success!")
 
 	// start gin
 	if err := r.Run(":8000"); err != nil {
