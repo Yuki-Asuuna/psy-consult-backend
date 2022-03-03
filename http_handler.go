@@ -7,6 +7,7 @@ import (
 	"psy-consult-backend/constant"
 	"psy-consult-backend/exception"
 	"psy-consult-backend/service"
+	"psy-consult-backend/utils/sessions"
 )
 
 // 允许跨域访问
@@ -25,14 +26,39 @@ func Cors() gin.HandlerFunc {
 	}
 }
 
+// 鉴权中间件
+func AuthMiddleWare() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		store := sessions.GetSessionClient()
+		session, err := store.Get(c.Request, "dotcomUser")
+		if err != nil {
+			c.Error(exception.AuthError())
+			logrus.Errorf(constant.Service+"AuthMiddleWare Store Get Session Failed, err= %v", err)
+			c.Abort()
+		}
+		if session.IsNew {
+			c.Error(exception.AuthError())
+			logrus.Errorf(constant.Service+"AuthMiddleWare Store Session Is New, err= %v", err)
+			c.Abort()
+		}
+		if isauth, ok := session.Values["authenticated"].(bool); !ok || !isauth {
+			c.Error(exception.AuthError())
+			logrus.Infof(constant.Service + "AuthMiddleWare Store Values Is False")
+			c.Abort()
+		}
+		c.Next()
+	}
+}
+
 func httpHandlerInit() {
 	logrus.Info(constant.Main + "Init httpHandlerInit")
 	// 支持跨域访问
 	r.Use(Cors())
+	// 错误处理
+	r.Use(exception.ErrorHandlingMiddleware)
+
 	r.GET("/ping", service.Ping)
-	r.GET("/home", service.Home)
 	imGroup := r.Group("/im")
-	imGroup.Use(exception.ErrorHandlingMiddleware)
 	{
 		imGroup.GET("/sign", service.GetUserSign)
 	}
@@ -40,7 +66,14 @@ func httpHandlerInit() {
 	authGroup := r.Group("/auth")
 	{
 		authGroup.POST("/login", service.Login)
-		authGroup.POST("/logout", service.Logout)
+		authGroup.POST("/logout", AuthMiddleWare(), service.Logout)
+		authGroup.GET("/me", AuthMiddleWare(), service.Me)
 	}
 
+	userGroup := r.Group("/user")
+	{
+		userGroup.PUT("/ms", service.AdminPutMs)
+		userGroup.POST("/ms", service.AdminPostMs)
+
+	}
 }

@@ -12,54 +12,74 @@ import (
 	"psy-consult-backend/utils/sessions"
 )
 
-func Login(c *gin.Context) {
+// 管理员添加后台用户
+func AdminPutMs(c *gin.Context) {
+	// 判断有无管理员权限
+	if info := sessions.GetCounsellorInfoBySession(c); info == nil || info.Role != 0 {
+		c.Error(exception.AuthError())
+		return
+	}
+
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
 	username := params["username"].(string)
 	password := params["password"].(string)
-	user_md5 := helper.S2MD5(username)
+	role := int(params["role"].(float64))
 
-	// 通过md5生成counsellorID
-	user, err := database.GetCounsellorUserByCounsellorID(user_md5)
+	user, err := database.GetCounsellorUserByCounsellorID(helper.S2MD5(username))
+	if err != nil {
+		logrus.Error(constant.Service+"AdminPutMs failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	// 用户已存在
+	if user != nil {
+		logrus.Infof(constant.Service + "AdminPutMs failed, user exists")
+		c.JSON(http.StatusOK, utils.GenSuccessResponse(-2, "用户已存在", nil))
+		return
+	}
 
+	err = database.AddCounsellorUser(username, password, role)
 	if err != nil {
+		logrus.Error(constant.Service+"AdminPutMs Failed, err= %v", err)
 		c.Error(exception.ServerError())
-		logrus.Error(constant.Service+"Login Failed, err= %v", err)
-		return
-	}
-	if user == nil {
-		c.JSON(http.StatusOK, utils.GenSuccessResponse(-1, "Username not found", nil))
-		return
-	}
-	// password = utils.S2MD5(password)
-	if password != user.Password {
-		c.JSON(http.StatusOK, utils.GenSuccessResponse(-1, "Incorrect Password", nil))
-		return
-	}
-	session, _ := sessions.GetSessionClient().Get(c.Request, "dotcomUser")
-	session.Values["authenticated"] = true
-	session.Values["username"] = username
-	err = sessions.GetSessionClient().Save(c.Request, c.Writer, session)
-	if err != nil {
-		c.Error(exception.ServerError())
-		logrus.Errorf(constant.Service+"Login Failed, err= %v", err)
 		return
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
 }
 
-func Logout(c *gin.Context) {
-	session, _ := sessions.GetSessionClient().Get(c.Request, "dotcomUser")
-	session.Values["authenticated"] = false
-	err := sessions.GetSessionClient().Save(c.Request, c.Writer, session)
+// 管理员 更新后台用户信息
+func AdminPostMs(c *gin.Context) {
+	// 判断有无管理员权限
+	if info := sessions.GetCounsellorInfoBySession(c); info == nil || info.Role != 0 {
+		c.Error(exception.AuthError())
+		return
+	}
+
+	params := make(map[string]interface{})
+	c.BindJSON(&params)
+	username := params["username"].(string)
+	name := params["name"].(string)
+	password := params["password"].(string)
+	status := int(params["status"].(float64))
+	gender := int(params["gender"].(float64))
+	age := int(params["age"].(float64))
+	identityNumber := params["identityNumber"].(string)
+	phoneNumber := params["phoneNumber"].(string)
+	avatar := params["avatar"].(string)
+	email := params["email"].(string)
+	title := params["title"].(string)
+	department := params["department"].(string)
+	qualification := params["qualification"].(string)
+	introduction := params["introduction"].(string)
+	maxConsults := int(params["maxConsults"].(float64))
+
+	counsellorID := helper.S2MD5(username)
+	err := database.UpdateCounsellorUserByCounsellorID(counsellorID, name, password, status, gender, age, identityNumber, phoneNumber, avatar, email, title, department, qualification, introduction, maxConsults)
 	if err != nil {
+		logrus.Error(constant.Service+"AdminPostMs Failed, err= %v", err)
 		c.Error(exception.ServerError())
-		logrus.Errorf(constant.Service+"Logout Failed, err= %v", err)
 		return
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
-}
-
-func Home(c *gin.Context) {
-	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", "hello,"+sessions.GetUserNameBySession(c)))
 }

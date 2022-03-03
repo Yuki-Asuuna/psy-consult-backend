@@ -3,6 +3,7 @@ package database
 import "time"
 
 type CounsellorUser struct {
+	CounsellorID   string
 	Username       string
 	Name           string
 	Password       string
