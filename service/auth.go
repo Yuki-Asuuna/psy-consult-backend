@@ -88,3 +88,27 @@ func Me(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", result))
 }
+
+func ChangePassword(c *gin.Context) {
+	user := sessions.GetCounsellorInfoBySession(c)
+	if user == nil {
+		c.Error(exception.ServerError())
+		logrus.Error(constant.Service + "ChangePassword Get Personal Info Failed, user is nil")
+		return
+	}
+	params := make(map[string]interface{})
+	c.BindJSON(&params)
+	oldPassword := params["oldPassword"].(string)
+	newPassword := params["newPassword"].(string)
+	if user.Password != oldPassword {
+		c.JSON(http.StatusOK, utils.GenSuccessResponse(-1, "旧密码不正确", nil))
+		return
+	}
+	err := database.UpdatePasswordByCounsellorID(user.CounsellorID, newPassword)
+	if err != nil {
+		c.Error(exception.ServerError())
+		logrus.Errorf(constant.Service+"ChangePassword Failed, err= %v", err)
+		return
+	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
+}

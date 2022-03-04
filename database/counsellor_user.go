@@ -59,3 +59,38 @@ func UpdateCounsellorUserByCounsellorID(counsellorID string, name string, passwo
 	}
 	return nil
 }
+
+func DeleteCounsellorUserByCounsellorID(counsellorID string) error {
+	err := mysql.GetMySQLClient().Where("counsellor_id = (?)", counsellorID).Delete(&CounsellorUser{}).Error
+	if err != nil {
+		logrus.Errorf(constant.DAO+"DeleteCounsellorUserByCounsellorID Failed, err= %v, counsellorID= %v", err, counsellorID)
+		return err
+	}
+	return nil
+}
+
+func GetCounsellorUserList(page int, size int, role int) ([]*CounsellorUser, error) {
+	counsellors := make([]*CounsellorUser, 0)
+	query := mysql.GetMySQLClient()
+	// role == 0 表示选择全部
+	if role != 0 {
+		query = query.Where("role = (?)", role)
+	}
+	err := query.Offset(page * size).Limit(size).Find(&counsellors).Error
+	if err != nil {
+		logrus.Errorf(constant.DAO+"GetCounsellorUserList Failed, err= %v", err)
+		return nil, err
+	}
+	return counsellors, nil
+}
+
+func UpdatePasswordByCounsellorID(counsellorID string, newPassword string) error {
+	err := mysql.GetMySQLClient().Model(&CounsellorUser{}).Where("counsellor_id = (?)", counsellorID).Update(map[string]interface{}{
+		"password": newPassword,
+	}).Error
+	if err != nil {
+		logrus.Errorf(constant.DAO+"UpdatePasswordByCounsellorID Failed, err= %v, counsellorID= %v", err, counsellorID)
+		return err
+	}
+	return nil
+}

@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"psy-consult-backend/api"
 	"psy-consult-backend/constant"
 	"psy-consult-backend/database"
 	"psy-consult-backend/exception"
@@ -82,4 +83,57 @@ func AdminPostMs(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
+}
+
+func AdminDeleteMs(c *gin.Context) {
+	// 判断有无管理员权限
+	if info := sessions.GetCounsellorInfoBySession(c); info == nil || info.Role != 0 {
+		c.Error(exception.AuthError())
+		return
+	}
+	params := make(map[string]interface{})
+	c.BindJSON(&params)
+	counsellorID := params["counsellorID"].(string)
+	err := database.DeleteCounsellorUserByCounsellorID(counsellorID)
+	if err != nil {
+		logrus.Error(constant.Service+"AdminDeleteMs, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", counsellorID))
+}
+
+func GetCounsellorList(c *gin.Context) {
+	page := helper.S2I(c.DefaultQuery("page", "0"))
+	size := helper.S2I(c.DefaultQuery("size", "10"))
+	role := helper.S2I(c.DefaultQuery("role", "0"))
+	list, err := database.GetCounsellorUserList(page, size, role)
+	if err != nil {
+		logrus.Error(constant.Service+"GetCounsellorList Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	resp := make([]*api.CounsellorInfoResponse, 0)
+	for _, c := range list {
+		resp = append(resp, &api.CounsellorInfoResponse{
+			CounsellorID:   c.CounsellorID,
+			Username:       c.Username,
+			Name:           c.Name,
+			Role:           c.Role,
+			Status:         c.Status,
+			Gender:         c.Gender,
+			Age:            c.Age,
+			IdentityNumber: c.IdentityNumber,
+			PhoneNumber:    c.PhoneNumber,
+			LastLogin:      c.LastLogin,
+			Avatar:         c.Avatar,
+			Email:          c.Email,
+			Title:          c.Title,
+			Department:     c.Department,
+			Qualification:  c.Qualification,
+			Introduction:   c.Introduction,
+			MaxConsults:    c.MaxConsults,
+		})
+	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
 }

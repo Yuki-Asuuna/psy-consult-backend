@@ -60,6 +60,8 @@ func httpHandlerInit() {
 	r.GET("/ping", service.Ping)
 	imGroup := r.Group("/im")
 	{
+		// imGroup.POST("/login")
+		// imGroup.GET("me")
 		imGroup.GET("/sign", service.GetUserSign)
 	}
 
@@ -68,12 +70,23 @@ func httpHandlerInit() {
 		authGroup.POST("/login", service.Login)
 		authGroup.POST("/logout", AuthMiddleWare(), service.Logout)
 		authGroup.GET("/me", AuthMiddleWare(), service.Me)
+		authGroup.POST("/password", AuthMiddleWare(), service.ChangePassword)
 	}
 
 	userGroup := r.Group("/user")
 	{
 		userGroup.PUT("/ms", service.AdminPutMs)
 		userGroup.POST("/ms", service.AdminPostMs)
+		userGroup.DELETE("/ms", service.AdminDeleteMs)
+		userGroup.GET("/list", service.GetCounsellorList)
 
 	}
+
+	visitorGroup := r.Group("/visitor")
+	{
+		visitorGroup.GET("/list", service.GetVisitorList)
+		visitorGroup.POST("/ban", service.BanVisitor)
+		visitorGroup.POST("/activate", service.ActivateVisitor)
+	}
+
 }
