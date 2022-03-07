@@ -79,6 +79,9 @@ func httpHandlerInit() {
 		userGroup.POST("/ms", service.AdminPostMs)
 		userGroup.DELETE("/ms", service.AdminDeleteMs)
 		userGroup.GET("/list", service.GetCounsellorList)
+		userGroup.PUT("/bind", service.AddBinding)
+		userGroup.DELETE("/bind", service.DeleteBinding)
+		userGroup.GET("/bind", service.GetBinding)
 
 	}
 
@@ -87,6 +90,13 @@ func httpHandlerInit() {
 		visitorGroup.GET("/list", service.GetVisitorList)
 		visitorGroup.POST("/ban", service.BanVisitor)
 		visitorGroup.POST("/activate", service.ActivateVisitor)
+	}
+
+	arrangeGroup := r.Group("/arrange")
+	{
+		arrangeGroup.PUT("/add", service.PutArrange)
+		arrangeGroup.GET("/get", service.GetArrange)
+		arrangeGroup.DELETE("/delete", service.DeleteArrange)
 	}
 
 }

@@ -10,15 +10,16 @@ import (
 var client *redistore.RediStore
 
 const (
-	redis_address  = "127.0.0.1:6379"
-	redis_password = ""
-	redis_network  = "tcp"
-	redis_size     = 10
+	redis_address   = "127.0.0.1:6379"
+	redis_password  = ""
+	redis_network   = "tcp"
+	redis_size      = 10
+	redis_secretkey = "secret key"
 )
 
 func SessionInit() error {
 	var err error
-	client, err = redistore.NewRediStore(redis_size, redis_network, redis_address, redis_password, []byte("secret key"))
+	client, err = redistore.NewRediStore(redis_size, redis_network, redis_address, redis_password, []byte(redis_secretkey))
 	if err != nil {
 		return err
 	}

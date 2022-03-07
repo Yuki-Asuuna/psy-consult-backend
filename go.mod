@@ -3,6 +3,7 @@ module psy-consult-backend
 go 1.16
 
 require (
+	github.com/GUAIK-ORG/go-snowflake v0.0.0-20200116064823-220c4260e85f // indirect
 	github.com/garyburd/redigo v1.6.3 // indirect
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/validator/v10 v10.10.0 // indirect

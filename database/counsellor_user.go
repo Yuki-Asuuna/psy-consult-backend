@@ -21,6 +21,20 @@ func GetCounsellorUserByCounsellorID(counsellorID string) (*CounsellorUser, erro
 	return counsellor, nil
 }
 
+func GetCounsellorUsersByCounsellorIDs(counsellorIDs []string) (map[string]*CounsellorUser, error) {
+	ret := make(map[string]*CounsellorUser, 0)
+	counsellors := make([]*CounsellorUser, 0)
+	err := mysql.GetMySQLClient().Where("counsellor_id in (?)", counsellorIDs).Find(&counsellors).Error
+	if err != nil {
+		logrus.Errorf(constant.DAO+"GetCounsellorUsersByCounsellorIDs Failed, err= %v", err)
+		return nil, err
+	}
+	for _, counsellor := range counsellors {
+		ret[counsellor.CounsellorID] = counsellor
+	}
+	return ret, nil
+}
+
 func AddCounsellorUser(username string, password string, role int) error {
 	counsellor := CounsellorUser{
 		Username:     username,
@@ -90,6 +104,17 @@ func UpdatePasswordByCounsellorID(counsellorID string, newPassword string) error
 	}).Error
 	if err != nil {
 		logrus.Errorf(constant.DAO+"UpdatePasswordByCounsellorID Failed, err= %v, counsellorID= %v", err, counsellorID)
+		return err
+	}
+	return nil
+}
+
+func UpdateLoginTimeByCounsellorID(counsellorID string) error {
+	err := mysql.GetMySQLClient().Model(&CounsellorUser{}).Where("counsellor_id = (?)", counsellorID).Update(map[string]interface{}{
+		"last_login": time.Now(),
+	}).Error
+	if err != nil {
+		logrus.Errorf(constant.DAO+"UpdateLoginTimeByCounsellorID Failed, err= %v, counsellorID= %v", err, counsellorID)
 		return err
 	}
 	return nil

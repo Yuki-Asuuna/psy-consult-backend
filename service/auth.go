@@ -46,6 +46,11 @@ func Login(c *gin.Context) {
 		logrus.Errorf(constant.Service+"Login Failed, err= %v", err)
 		return
 	}
+	if err := database.UpdateLoginTimeByCounsellorID(helper.S2MD5(username)); err != nil {
+		c.Error(exception.ServerError())
+		logrus.Errorf(constant.Service+"Login Failed, err= %v", err)
+		return
+	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
 }
 

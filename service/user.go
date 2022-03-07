@@ -46,7 +46,7 @@ func AdminPutMs(c *gin.Context) {
 		c.Error(exception.ServerError())
 		return
 	}
-	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", username))
 }
 
 // 管理员 更新后台用户信息
@@ -133,6 +133,84 @@ func GetCounsellorList(c *gin.Context) {
 			Qualification:  c.Qualification,
 			Introduction:   c.Introduction,
 			MaxConsults:    c.MaxConsults,
+		})
+	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
+}
+
+func AddBinding(c *gin.Context) {
+	params := make(map[string]interface{})
+	c.BindJSON(&params)
+	supervisorID := params["supervisorID"].(string)
+	counsellorID := params["counsellorID"].(string)
+	info := sessions.GetCounsellorInfoBySession(c)
+
+	// 管理员 或者 当前后台用户为咨询师且咨询师的ID与json body一致
+	if info.Role == 0 || (info.CounsellorID == counsellorID && info.Role == 1) {
+		supervisorInfo, err := database.GetCounsellorUserByCounsellorID(supervisorID)
+		if err != nil {
+			logrus.Error(constant.Service+"AddBinding Failed, err= %v", err)
+			c.Error(exception.ServerError())
+			return
+		}
+		if supervisorInfo == nil {
+			c.JSON(http.StatusOK, utils.GenSuccessResponse(-2, "非法ID", nil))
+			return
+		}
+		err = database.AddBinding(counsellorID, supervisorID)
+		if err != nil {
+			logrus.Error(constant.Service+"AddBinding Failed, err= %v", err)
+			c.Error(exception.ServerError())
+			return
+		}
+		c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
+	} else {
+		c.JSON(http.StatusOK, utils.GenSuccessResponse(-3, "权限错误", nil))
+		return
+	}
+}
+
+func DeleteBinding(c *gin.Context) {
+	params := make(map[string]interface{})
+	c.BindJSON(&params)
+	bindingID := helper.S2I64(params["bindingID"].(string))
+	err := database.DeleteBinding(bindingID)
+	if err != nil {
+		c.Error(exception.ServerError())
+		logrus.Errorf(constant.Service+"DeleteBinding Failed, err= %v", err)
+		return
+	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
+}
+
+func GetBinding(c *gin.Context) {
+	counsellorID := c.Query("counsellorID")
+	bindings, err := database.GetBindingByCounsellorID(counsellorID)
+	if err != nil {
+		c.Error(exception.ServerError())
+		logrus.Errorf(constant.Service+"GetBinding Failed, err= %v", err)
+		return
+	}
+	supervisorIDList := make([]string, 0)
+	for _, binding := range bindings {
+		supervisorIDList = append(supervisorIDList, binding.SupervisorID)
+	}
+	counsellorID2InfoMap, err := database.GetCounsellorUsersByCounsellorIDs(supervisorIDList)
+	if err != nil {
+		c.Error(exception.ServerError())
+		logrus.Errorf(constant.Service+"GetBinding Failed, err= %v", err)
+		return
+	}
+	resp := make([]*api.BindingInfoResponse, 0)
+	for _, binding := range bindings {
+		supervisor, _ := counsellorID2InfoMap[binding.SupervisorID]
+		if supervisor == nil {
+			continue
+		}
+		resp = append(resp, &api.BindingInfoResponse{
+			BindingID:    binding.BindingID,
+			SupervisorID: binding.SupervisorID,
+			Name:         supervisor.Name,
 		})
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))

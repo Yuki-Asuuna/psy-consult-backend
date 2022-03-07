@@ -21,3 +21,9 @@ type CounsellorInfoResponse struct {
 	Introduction   string    `json:"introduction"`
 	MaxConsults    int       `json:"max_consults"`
 }
+
+type BindingInfoResponse struct {
+	BindingID    int64  `json:"bindingID"`
+	SupervisorID string `json:"supervisorID"`
+	Name         string `json:"name"`
+}

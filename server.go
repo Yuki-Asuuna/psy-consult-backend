@@ -8,6 +8,7 @@ import (
 	"psy-consult-backend/constant"
 	"psy-consult-backend/utils/mysql"
 	"psy-consult-backend/utils/sessions"
+	"psy-consult-backend/utils/snowflake"
 )
 
 var r *gin.Engine
@@ -42,6 +43,12 @@ func main() {
 		return
 	}
 	logrus.Infof(constant.Main + "Init Session Success!")
+
+	// init unique id generator (twitter/snowflake)
+	if err := snowflake.SnowflakeInit(); err != nil {
+		logrus.Errorf(constant.Main+"Init Snowflake Failed, err= %v", err)
+		return
+	}
 
 	// init mysql database
 	if err := mysql.MysqlInit(); err != nil {
