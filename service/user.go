@@ -85,6 +85,42 @@ func AdminPostMs(c *gin.Context) {
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
 }
 
+func SuperuserGet(c *gin.Context) {
+	// 判断有无管理员权限
+	if info := sessions.GetCounsellorInfoBySession(c); info == nil || info.Role != 0 {
+		c.Error(exception.AuthError())
+		return
+	}
+	counsellorID := c.Query("counsellorID")
+	user, err := database.GetCounsellorUserByCounsellorID(counsellorID)
+	if err != nil {
+		logrus.Error(constant.Service+"SuperuserGet, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	resp := api.SuperuserGetResponse{
+		CounsellorID:   user.CounsellorID,
+		Username:       user.Username,
+		Name:           user.Name,
+		Password:       user.Password,
+		Role:           user.Role,
+		Status:         user.Status,
+		Gender:         user.Gender,
+		Age:            user.Age,
+		IdentityNumber: user.IdentityNumber,
+		PhoneNumber:    user.PhoneNumber,
+		LastLogin:      user.LastLogin,
+		Avatar:         user.Avatar,
+		Email:          user.Email,
+		Title:          user.Title,
+		Department:     user.Department,
+		Qualification:  user.Qualification,
+		Introduction:   user.Introduction,
+		MaxConsults:    user.MaxConsults,
+	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
+}
+
 func AdminDeleteMs(c *gin.Context) {
 	// 判断有无管理员权限
 	if info := sessions.GetCounsellorInfoBySession(c); info == nil || info.Role != 0 {
@@ -173,7 +209,7 @@ func AddBinding(c *gin.Context) {
 func DeleteBinding(c *gin.Context) {
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
-	bindingID := helper.S2I64(params["bindingID"].(string))
+	bindingID := int64(params["bindingID"].(float64))
 	err := database.DeleteBinding(bindingID)
 	if err != nil {
 		c.Error(exception.ServerError())

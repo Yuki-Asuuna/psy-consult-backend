@@ -10,10 +10,16 @@ import (
 	"psy-consult-backend/exception"
 	"psy-consult-backend/utils"
 	"psy-consult-backend/utils/helper"
+	"psy-consult-backend/utils/sessions"
 	"time"
 )
 
 func PutArrange(c *gin.Context) {
+	// 判断有无管理员权限
+	if info := sessions.GetCounsellorInfoBySession(c); info == nil || info.Role != 0 {
+		c.Error(exception.AuthError())
+		return
+	}
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
 	arrangeTime := time.Unix(int64(params["arrangeTime"].(float64)), 0)
@@ -98,9 +104,14 @@ func GetArrange(c *gin.Context) {
 }
 
 func DeleteArrange(c *gin.Context) {
+	// 判断有无管理员权限
+	if info := sessions.GetCounsellorInfoBySession(c); info == nil || info.Role != 0 {
+		c.Error(exception.AuthError())
+		return
+	}
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
-	arrangeID := helper.S2I64(params["arrangeID"].(string))
+	arrangeID := int64(params["arrangeID"].(float64))
 	err := database.DeleteArrangement(arrangeID)
 	if err != nil {
 		c.Error(exception.ServerError())

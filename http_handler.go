@@ -58,6 +58,7 @@ func httpHandlerInit() {
 	r.Use(exception.ErrorHandlingMiddleware)
 
 	r.GET("/ping", service.Ping)
+	r.PUT("/image_upload", service.ImageUpload)
 	imGroup := r.Group("/im")
 	{
 		// imGroup.POST("/login")
@@ -78,6 +79,7 @@ func httpHandlerInit() {
 		userGroup.PUT("/ms", service.AdminPutMs)
 		userGroup.POST("/ms", service.AdminPostMs)
 		userGroup.DELETE("/ms", service.AdminDeleteMs)
+		userGroup.GET("/superuser_get", service.SuperuserGet)
 		userGroup.GET("/list", service.GetCounsellorList)
 		userGroup.PUT("/bind", service.AddBinding)
 		userGroup.DELETE("/bind", service.DeleteBinding)

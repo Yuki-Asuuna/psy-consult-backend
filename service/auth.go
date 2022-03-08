@@ -29,12 +29,12 @@ func Login(c *gin.Context) {
 		return
 	}
 	if user == nil {
-		c.JSON(http.StatusOK, utils.GenSuccessResponse(-1, "Username not found", nil))
+		c.JSON(http.StatusOK, utils.GenSuccessResponse(-3, "Username not found", nil))
 		return
 	}
 	// password = utils.S2MD5(password)
 	if password != user.Password {
-		c.JSON(http.StatusOK, utils.GenSuccessResponse(-1, "Incorrect Password", nil))
+		c.JSON(http.StatusOK, utils.GenSuccessResponse(-3, "Incorrect Password", nil))
 		return
 	}
 	session, _ := sessions.GetSessionClient().Get(c.Request, "dotcomUser")
@@ -74,6 +74,7 @@ func Me(c *gin.Context) {
 		return
 	}
 	result := &api.MeResponse{
+		CounsellorID:   user.CounsellorID,
 		Username:       user.Username,
 		Name:           user.Name,
 		Role:           user.Role,
