@@ -69,6 +69,7 @@ func httpHandlerInit() {
 	authGroup := r.Group("/auth")
 	{
 		authGroup.POST("/login", service.Login)
+		authGroup.POST("/wx_login", service.WxLogin)
 		authGroup.POST("/logout", AuthMiddleWare(), service.Logout)
 		authGroup.GET("/me", AuthMiddleWare(), service.Me)
 		authGroup.POST("/password", AuthMiddleWare(), service.ChangePassword)

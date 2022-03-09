@@ -15,6 +15,7 @@ const (
 	redis_network   = "tcp"
 	redis_size      = 10
 	redis_secretkey = "secret key"
+	redis_maxage    = 7 * 24 * 3600
 )
 
 func SessionInit() error {
@@ -23,6 +24,7 @@ func SessionInit() error {
 	if err != nil {
 		return err
 	}
+	client.SetMaxAge(redis_maxage)
 	return nil
 }
 

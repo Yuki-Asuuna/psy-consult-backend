@@ -8,6 +8,7 @@ import (
 	"psy-consult-backend/constant"
 	"psy-consult-backend/database"
 	"psy-consult-backend/exception"
+	"psy-consult-backend/tencent-im/account_manage"
 	"psy-consult-backend/utils"
 	"psy-consult-backend/utils/helper"
 	"psy-consult-backend/utils/sessions"
@@ -41,6 +42,12 @@ func AdminPutMs(c *gin.Context) {
 	}
 
 	err = database.AddCounsellorUser(username, password, role)
+	if err != nil {
+		logrus.Error(constant.Service+"AdminPutMs Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	err = account_manage.AddIMSDKAccount(helper.S2MD5(username), username, "")
 	if err != nil {
 		logrus.Error(constant.Service+"AdminPutMs Failed, err= %v", err)
 		c.Error(exception.ServerError())
@@ -133,6 +140,12 @@ func AdminDeleteMs(c *gin.Context) {
 	err := database.DeleteCounsellorUserByCounsellorID(counsellorID)
 	if err != nil {
 		logrus.Error(constant.Service+"AdminDeleteMs, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	err = account_manage.DeleteIMSDKAccount(counsellorID)
+	if err != nil {
+		logrus.Error(constant.Service+"AdminDeleteMs Failed, err= %v", err)
 		c.Error(exception.ServerError())
 		return
 	}

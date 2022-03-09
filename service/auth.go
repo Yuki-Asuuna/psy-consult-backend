@@ -8,6 +8,7 @@ import (
 	"psy-consult-backend/constant"
 	"psy-consult-backend/database"
 	"psy-consult-backend/exception"
+	tencent_wechat "psy-consult-backend/tencent-wechat"
 	"psy-consult-backend/utils"
 	"psy-consult-backend/utils/helper"
 	"psy-consult-backend/utils/sessions"
@@ -114,6 +115,48 @@ func ChangePassword(c *gin.Context) {
 	if err != nil {
 		c.Error(exception.ServerError())
 		logrus.Errorf(constant.Service+"ChangePassword Failed, err= %v", err)
+		return
+	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
+}
+
+func WxLogin(c *gin.Context) {
+	// GET https://api.weixin.qq.com/sns/jscode2session?appid=APPID&secret=SECRET&js_code=JSCODE&grant_type=authorization_code
+	params := make(map[string]interface{})
+	c.BindJSON(&params)
+	appid := params["appid"].(string)
+	code := params["code"].(string)
+	resp, err := tencent_wechat.WeChatLogin(appid, code)
+	if err != nil {
+		c.Error(exception.AuthError())
+		logrus.Errorf(constant.Service+"WxLogin Failed, err= %v", err)
+		return
+	}
+	// after success
+	openID := resp.OpenID
+	visitor, err := database.GetVisitorUserByVisitorID(openID)
+	if err != nil {
+		c.Error(exception.ServerError())
+		logrus.Errorf(constant.Service+"WxLogin Failed, err= %v", err)
+		return
+	}
+	if visitor == nil {
+		// 静默注册
+		err = database.AddVisitorUser(openID)
+		if err != nil {
+			logrus.Errorf(constant.Service+"WxLogin failed, err= %v", err)
+			c.Error(exception.ServerError())
+			return
+		}
+	}
+	sessionKey := resp.SessionKey
+	session, _ := sessions.GetSessionClient().Get(c.Request, "WeChatUser")
+	session.Values["openID"] = openID
+	session.Values["sessionKey"] = sessionKey
+	err = sessions.GetSessionClient().Save(c.Request, c.Writer, session)
+	if err != nil {
+		logrus.Errorf(constant.Service+"WxLogin failed, err= %v", err)
+		c.Error(exception.ServerError())
 		return
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
