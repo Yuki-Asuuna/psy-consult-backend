@@ -102,4 +102,11 @@ func httpHandlerInit() {
 		arrangeGroup.DELETE("/delete", service.DeleteArrange)
 	}
 
+	conversationGrop := r.Group("/conversation")
+	{
+		conversationGrop.PUT("/start", service.AddConversation)
+		conversationGrop.POST("/end", service.EndConversation)
+		conversationGrop.POST("/supervise", service.Supervise)
+	}
+
 }

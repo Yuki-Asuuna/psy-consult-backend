@@ -8,6 +8,7 @@ import (
 	"psy-consult-backend/constant"
 	"psy-consult-backend/database"
 	"psy-consult-backend/exception"
+	"psy-consult-backend/tencent-im/account_manage"
 	tencent_wechat "psy-consult-backend/tencent-wechat"
 	"psy-consult-backend/utils"
 	"psy-consult-backend/utils/helper"
@@ -141,6 +142,12 @@ func WxLogin(c *gin.Context) {
 		return
 	}
 	if visitor == nil {
+		err = account_manage.AddIMSDKAccount(openID, openID, "")
+		if err != nil {
+			logrus.Errorf(constant.Service+"WxLogin failed, err= %v", err)
+			c.Error(exception.ServerError())
+			return
+		}
 		// 静默注册
 		err = database.AddVisitorUser(openID)
 		if err != nil {

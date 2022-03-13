@@ -41,6 +41,20 @@ func GetCounsellorNameBySession(c *gin.Context) string {
 	return ret.(string)
 }
 
+func GetWeChatUserInfoBySession(c *gin.Context) *database.VisitorUser {
+	session, _ := client.Get(c.Request, "WeChatUser")
+	ret, ok := session.Values["openID"]
+	var openID string
+	if ok {
+		openID = ret.(string)
+	}
+	visitorUser, err := database.GetVisitorUserByVisitorID(openID)
+	if err != nil {
+		return nil
+	}
+	return visitorUser
+}
+
 func GetCounsellorInfoBySession(c *gin.Context) *database.CounsellorUser {
 	currentCounsellorName := GetCounsellorNameBySession(c)
 	currentCounsellorID := helper.S2MD5(currentCounsellorName)
