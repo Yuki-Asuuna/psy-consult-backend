@@ -107,6 +107,12 @@ func httpHandlerInit() {
 		conversationGrop.PUT("/start", service.AddConversation)
 		conversationGrop.POST("/end", service.EndConversation)
 		conversationGrop.POST("/supervise", service.Supervise)
+		conversationGrop.GET("/search", service.ConversationSearch)
+	}
+
+	evaluateGroup := r.Group("/evaluate")
+	{
+		evaluateGroup.PUT("/add", service.AddEvaluation)
 	}
 
 }

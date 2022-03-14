@@ -42,3 +42,20 @@ func UpdateConversationByConversationID(conversationID int64, updateMap map[stri
 	}
 	return nil
 }
+
+func GetConversationList(page int64, size int64, startTime int64, endTime int64) ([]*Conversation, error) {
+	conversations := make([]*Conversation, 0)
+	query := mysql.GetMySQLClient()
+	// role == 0 表示选择全部
+	//if role != 0 {
+	//	query = query.Where("role = (?)", role)
+	//}
+	query = query.Where("start_time >= (?)", time.Unix(startTime, 0))
+	query = query.Where("end_time <= (?)", time.Unix(endTime, 0))
+	err := query.Offset(page * size).Limit(size).Find(&conversations).Error
+	if err != nil {
+		logrus.Errorf(constant.DAO+"GetConversationList Failed, err= %v", err)
+		return nil, err
+	}
+	return conversations, nil
+}
