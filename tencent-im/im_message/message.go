@@ -23,7 +23,7 @@ func SendTextMessage(fromAccount string, toAccount string, msg string) error {
 		SyncOtherMachine: 1,
 		FromAccount:      fromAccount,
 		ToAccount:        toAccount,
-		MsgRandom:        rand.Int(),
+		MsgRandom:        int64(rand.Uint32()),
 		MsgBody:          []TextMessage{{MsgType: "TIMTextElem", MsgContent: TextMessageContent{Text: msg}}},
 	}
 	body, err := json.Marshal(req_body)

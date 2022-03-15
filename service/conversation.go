@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/xuri/excelize/v2"
 	"net/http"
 	"psy-consult-backend/api"
 	"psy-consult-backend/constant"
@@ -244,4 +245,49 @@ func ConversationSearch(c *gin.Context) {
 		resp = append(resp, t)
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
+}
+
+func ConversationExport(c *gin.Context) {
+	conversationID := c.Query("conversationID")
+	excel := excelize.NewFile()
+	conversationInfo, err := database.GetConversationByConversationID(helper.S2I64(conversationID))
+	if err != nil {
+		logrus.Errorf(constant.Service+"ConversationExport Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	if conversationInfo == nil {
+		logrus.Warnf(constant.Service+"ConversationExport Failed, err= %v", "conversation does not exist")
+		c.JSON(http.StatusOK, utils.GenSuccessResponse(-2, "conversation does not exist", nil))
+		return
+	}
+	res, err := im_message.SearchAllHistoryMessage(conversationInfo.VisitorID, conversationInfo.CounsellorID, conversationInfo.StartTime.Unix(), conversationInfo.EndTime.Unix())
+	if err != nil {
+		logrus.Errorf(constant.Service+"ConversationExport Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	// 设置列名 默认Sheet1
+	_ = excel.SetCellValue("Sheet1", "A1", "时间")
+	_ = excel.SetCellValue("Sheet1", "B1", "发送方")
+	_ = excel.SetCellValue("Sheet1", "C1", "接收方")
+	_ = excel.SetCellValue("Sheet1", "D1", "消息类型")
+	_ = excel.SetCellValue("Sheet1", "E1", "消息内容")
+	for index, msg := range res {
+		idx := helper.I2S(index + 2)
+		_ = excel.SetCellValue("Sheet1", "A"+idx, helper.Timestamp2S(msg.MsgTimeStamp))
+		_ = excel.SetCellValue("Sheet1", "B"+idx, msg.FromAccount)
+		_ = excel.SetCellValue("Sheet1", "C"+idx, msg.ToAccount)
+		_ = excel.SetCellValue("Sheet1", "D"+idx, msg.MsgBody[0].MsgType)
+		_ = excel.SetCellValue("Sheet1", "E"+idx, msg.MsgBody[0].MsgContent)
+	}
+	fileName := "./excel-export/" + conversationID + ".xlsx"
+	err = excel.SaveAs(fileName)
+	if err != nil {
+		logrus.Errorf(constant.Service+"ConversationExport Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	c.File(fileName)
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
 }
