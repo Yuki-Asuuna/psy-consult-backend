@@ -12,13 +12,14 @@ import (
 	"psy-consult-backend/tencent-im/im_message"
 	"psy-consult-backend/utils"
 	"psy-consult-backend/utils/helper"
-	"psy-consult-backend/utils/sessions"
+	"psy-consult-backend/utils/redis"
 	"time"
 )
 
 func AddConversation(c *gin.Context) {
+	sessionKey := c.Query("sessionKey")
 	var info *database.VisitorUser
-	if info = sessions.GetWeChatUserInfoBySession(c); info == nil {
+	if info = redis.GetVisitorInfoBySessionKey(sessionKey); info == nil {
 		c.Error(exception.AuthError())
 		return
 	}

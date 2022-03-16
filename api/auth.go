@@ -21,3 +21,17 @@ type MeResponse struct {
 	Introduction   string    `json:"introduction"`
 	MaxConsults    int       `json:"maxConsults"`
 }
+
+type WxMeResponse struct {
+	VisitorId        string    `json:"visitorID"`
+	Username         string    `json:"username"`
+	PhoneNumber      string    `json:"phoneNumber"`
+	Name             string    `json:"name"`
+	Gender           int       `json:"gender"`
+	Status           int       `json:"status"`
+	LastLogin        time.Time `json:"lastLogin"`
+	Email            string    `json:"email"`
+	EmergencyContact string    `json:"emergencyContact"`
+	EmergencyPhone   string    `json:"emergencyPhone"`
+	HasAgreed        int       `json:"hasAgreed"`
+}

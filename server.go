@@ -7,6 +7,7 @@ import (
 	"os"
 	"psy-consult-backend/constant"
 	"psy-consult-backend/utils/mysql"
+	"psy-consult-backend/utils/redis"
 	"psy-consult-backend/utils/sessions"
 	"psy-consult-backend/utils/snowflake"
 )
@@ -36,6 +37,9 @@ func main() {
 
 	// handler init
 	httpHandlerInit()
+
+	// init redis
+	redis.RedisInit()
 
 	// init session
 	if err := sessions.SessionInit(); err != nil {

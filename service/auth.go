@@ -12,6 +12,7 @@ import (
 	tencent_wechat "psy-consult-backend/tencent-wechat"
 	"psy-consult-backend/utils"
 	"psy-consult-backend/utils/helper"
+	"psy-consult-backend/utils/redis"
 	"psy-consult-backend/utils/sessions"
 )
 
@@ -157,12 +158,68 @@ func WxLogin(c *gin.Context) {
 		}
 	}
 	sessionKey := resp.SessionKey
-	session, _ := sessions.GetSessionClient().Get(c.Request, "WeChatUser")
-	session.Values["openID"] = openID
-	session.Values["sessionKey"] = sessionKey
-	err = sessions.GetSessionClient().Save(c.Request, c.Writer, session)
+	err = redis.SetWxSessionKey(sessionKey, openID)
 	if err != nil {
 		logrus.Errorf(constant.Service+"WxLogin failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
+}
+
+func WxMe(c *gin.Context) {
+	sessionKey := c.Query("sessionKey")
+	var info *database.VisitorUser
+	if info = redis.GetVisitorInfoBySessionKey(sessionKey); info == nil {
+		c.Error(exception.AuthError())
+		return
+	}
+	resp := api.WxMeResponse{
+		VisitorId:        info.VisitorID,
+		Username:         info.Username,
+		PhoneNumber:      info.PhoneNumber,
+		Name:             info.Name,
+		Gender:           info.Gender,
+		Status:           info.Status,
+		LastLogin:        info.LastLogin,
+		Email:            info.Email,
+		EmergencyContact: info.EmergencyContact,
+		EmergencyPhone:   info.EmergencyPhone,
+		HasAgreed:        info.HasAgreed,
+	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
+}
+
+func WxUpdate(c *gin.Context) {
+	sessionKey := c.Query("sessionKey")
+	// 微信鉴权
+	var info *database.VisitorUser
+	if info = redis.GetVisitorInfoBySessionKey(sessionKey); info == nil {
+		c.Error(exception.AuthError())
+		return
+	}
+	params := make(map[string]interface{})
+	c.BindJSON(&params)
+	phoneNumber := params["phoneNumber"].(string)
+	name := params["name"].(string)
+	gender := int(params["gender"].(float64))
+	status := int(params["status"].(float64))
+	email := params["email"].(string)
+	emergencyContact := params["emergencyContact"].(string)
+	EmergencyPhone := params["emergencyPhone"].(string)
+	hasAgreed := int(params["hasAgreed"].(float64))
+	err := database.UpdateVisitorUserByVisitorID(info.VisitorID, map[string]interface{}{
+		"phone_number":      phoneNumber,
+		"name":              name,
+		"gender":            gender,
+		"status":            status,
+		"email":             email,
+		"emergency_contact": emergencyContact,
+		"emergency_phone":   EmergencyPhone,
+		"has_agreed":        hasAgreed,
+	})
+	if err != nil {
+		logrus.Error(constant.Service+"WxUpdate Failed, err= %v", err)
 		c.Error(exception.ServerError())
 		return
 	}
