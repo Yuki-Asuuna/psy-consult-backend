@@ -13,6 +13,7 @@ import (
 	"psy-consult-backend/utils"
 	"psy-consult-backend/utils/helper"
 	"psy-consult-backend/utils/redis"
+	"psy-consult-backend/utils/sessions"
 	"strings"
 	"time"
 )
@@ -307,4 +308,38 @@ func ConversationExport(c *gin.Context) {
 	}
 	c.File(fileName)
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
+}
+
+func TodayStat(c *gin.Context) {
+	counsellor := sessions.GetCounsellorInfoBySession(c)
+	if counsellor == nil {
+		c.Error(exception.ServerError())
+		return
+	}
+	lst, err := database.GetConversationListByCounsellorIDAndTimeInterval(counsellor.CounsellorID, helper.GetTodayStartTimeStamp(), helper.GetTodayEndTimeStamp())
+	if err != nil {
+		logrus.Errorf(constant.Service+"TodayStat Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	if lst == nil {
+		c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", api.TodayStatResponse{}))
+		return
+	}
+	var d time.Duration
+	for _, c := range lst {
+		delta := c.EndTime.Sub(c.StartTime)
+		d += delta
+	}
+	seconds := int(d.Seconds())
+	hour := int(seconds / 3600)
+	minute := int((seconds - hour*3600) / 60)
+	second := seconds - hour*3600 - minute*60
+	resp := api.TodayStatResponse{
+		TotalCount: len(lst),
+		Hour:       hour,
+		Minute:     minute,
+		Second:     second,
+	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
 }

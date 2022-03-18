@@ -13,3 +13,10 @@ type ConversationSearchResponse struct {
 	Supervisor     *CounsellorInfoResponse `json:"supervisorInfo"`
 	Evaluation     *EvaluationInfoResponse `json:"evaluation"`
 }
+
+type TodayStatResponse struct {
+	TotalCount int `json:"totalCount"`
+	Hour       int `json:"hour"`
+	Minute     int `json:"minute"`
+	Second     int `json:"second"`
+}

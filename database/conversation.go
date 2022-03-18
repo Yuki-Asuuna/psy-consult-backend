@@ -59,3 +59,17 @@ func GetConversationList(page int64, size int64, startTime int64, endTime int64)
 	}
 	return conversations, nil
 }
+
+func GetConversationListByCounsellorIDAndTimeInterval(counsellorID string, startTime int64, endTime int64) ([]*Conversation, error) {
+	conversations := make([]*Conversation, 0)
+	query := mysql.GetMySQLClient()
+	query = query.Where("counsellor_id = (?)", counsellorID)
+	query = query.Where("start_time >= (?)", time.Unix(startTime, 0))
+	query = query.Where("end_time <= (?)", time.Unix(endTime, 0))
+	err := query.Find(&conversations).Error
+	if err != nil {
+		logrus.Errorf(constant.DAO+"GetConversationListByCounsellorIDAndTimeInterval Failed, err= %v", err)
+		return nil, err
+	}
+	return conversations, nil
+}

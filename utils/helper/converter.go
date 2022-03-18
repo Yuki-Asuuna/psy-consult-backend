@@ -2,7 +2,6 @@ package helper
 
 import (
 	"strconv"
-	"time"
 )
 
 func S2I(s string) int {
@@ -43,10 +42,4 @@ func Int64Arr2StrArr(int64Arr []int64) []string {
 		strArr = append(strArr, I642S(i))
 	}
 	return strArr
-}
-
-func Timestamp2S(timeUnix int64) string {
-	layout := "2006-01-02 15:04:05"
-	timeStr := time.Unix(timeUnix, 0).Format(layout)
-	return timeStr
 }
