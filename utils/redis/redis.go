@@ -5,13 +5,16 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
 	"psy-consult-backend/database"
+	"psy-consult-backend/utils/helper"
+	"time"
 )
 
 const (
 	redis_address  = "127.0.0.1:6379"
 	redis_password = ""
 	redis_network  = "tcp"
-	expire_time    = 3600
+	expire_time    = time.Minute * 20
+	online_prefix  = "Online_Account_"
 )
 
 var client *redis.Client
@@ -61,4 +64,41 @@ func GetVisitorInfoBySessionKey(sessionKey string) *database.VisitorUser {
 		return nil
 	}
 	return user
+}
+
+func SetOnline(userID string) error {
+	err := client.Set(ctx, online_prefix+userID, 1, expire_time).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func SetBusy(userID string) error {
+	err := client.Set(ctx, online_prefix+userID, 2, expire_time).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func SetOffline(userID string) error {
+	err := client.Del(ctx, online_prefix+userID).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetOnlineList() ([]string, error) {
+	lst, err := client.Keys(ctx, online_prefix+"*").Result()
+	return lst, err
+}
+
+func CheckOnline(userID string) int {
+	u, err := client.Get(ctx, online_prefix+userID).Result()
+	if err != nil {
+		return 0
+	}
+	return helper.S2I(u)
 }

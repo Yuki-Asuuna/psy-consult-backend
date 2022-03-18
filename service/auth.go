@@ -43,6 +43,12 @@ func Login(c *gin.Context) {
 	session, _ := sessions.GetSessionClient().Get(c.Request, "dotcomUser")
 	session.Values["authenticated"] = true
 	session.Values["username"] = username
+	err = redis.SetOnline(helper.S2MD5(username))
+	if err != nil {
+		c.Error(exception.ServerError())
+		logrus.Errorf(constant.Service+"Login Failed, err= %v", err)
+		return
+	}
 	err = sessions.GetSessionClient().Save(c.Request, c.Writer, session)
 	if err != nil {
 		c.Error(exception.ServerError())
@@ -61,6 +67,12 @@ func Logout(c *gin.Context) {
 	session, _ := sessions.GetSessionClient().Get(c.Request, "dotcomUser")
 	session.Values["authenticated"] = false
 	err := sessions.GetSessionClient().Save(c.Request, c.Writer, session)
+	if err != nil {
+		c.Error(exception.ServerError())
+		logrus.Errorf(constant.Service+"Logout Failed, err= %v", err)
+		return
+	}
+	err = redis.SetOffline(helper.S2MD5(session.Values["username"].(string)))
 	if err != nil {
 		c.Error(exception.ServerError())
 		logrus.Errorf(constant.Service+"Logout Failed, err= %v", err)

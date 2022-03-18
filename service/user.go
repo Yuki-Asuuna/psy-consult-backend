@@ -11,6 +11,7 @@ import (
 	"psy-consult-backend/tencent-im/account_manage"
 	"psy-consult-backend/utils"
 	"psy-consult-backend/utils/helper"
+	"psy-consult-backend/utils/redis"
 	"psy-consult-backend/utils/sessions"
 )
 
@@ -164,7 +165,7 @@ func GetCounsellorList(c *gin.Context) {
 	}
 	resp := make([]*api.CounsellorInfoResponse, 0)
 	for _, c := range list {
-		resp = append(resp, &api.CounsellorInfoResponse{
+		t := &api.CounsellorInfoResponse{
 			CounsellorID:   c.CounsellorID,
 			Username:       c.Username,
 			Name:           c.Name,
@@ -182,7 +183,9 @@ func GetCounsellorList(c *gin.Context) {
 			Qualification:  c.Qualification,
 			Introduction:   c.Introduction,
 			MaxConsults:    c.MaxConsults,
-		})
+		}
+		t.IsOnline = redis.CheckOnline(c.CounsellorID)
+		resp = append(resp, t)
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
 }

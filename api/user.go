@@ -20,6 +20,7 @@ type CounsellorInfoResponse struct {
 	Qualification  string    `json:"qualification"`
 	Introduction   string    `json:"introduction"`
 	MaxConsults    int       `json:"maxConsults"`
+	IsOnline       int       `json:"isOnline"`
 }
 
 type BindingInfoResponse struct {

@@ -227,6 +227,7 @@ func ConversationSearch(c *gin.Context) {
 				Qualification:  supervisor.Qualification,
 				Introduction:   supervisor.Introduction,
 				MaxConsults:    supervisor.MaxConsults,
+				IsOnline:       redis.CheckOnline(supervisor.CounsellorID),
 			}
 		}
 		evaluation, err := database.GetEvaluationByConversationID(conv.ConversationID)
