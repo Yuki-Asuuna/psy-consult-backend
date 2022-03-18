@@ -13,6 +13,7 @@ import (
 	"psy-consult-backend/utils"
 	"psy-consult-backend/utils/helper"
 	"psy-consult-backend/utils/redis"
+	"strings"
 	"time"
 )
 
@@ -113,6 +114,7 @@ func Supervise(c *gin.Context) {
 
 func ConversationSearch(c *gin.Context) {
 	var page, size, startTime, endTime int64
+	var counsellorName, visitorName string
 	qc := c.Query("page")
 	if qc == "" {
 		page = 0
@@ -140,6 +142,9 @@ func ConversationSearch(c *gin.Context) {
 	} else {
 		endTime = helper.S2I64(qc)
 	}
+
+	counsellorName = c.DefaultQuery("counsellorName", "")
+	visitorName = c.DefaultQuery("visitorName", "")
 
 	conversations, err := database.GetConversationList(page, size, startTime, endTime)
 	if err != nil {
@@ -242,6 +247,16 @@ func ConversationSearch(c *gin.Context) {
 				ConversationID: evaluation.ConversationID,
 				Rating:         evaluation.Rating,
 				Evaluation:     evaluation.Evaluation,
+			}
+		}
+		if visitorName != "" {
+			if strings.Contains(t.Visitor.Name, visitorName) == false {
+				continue
+			}
+		}
+		if counsellorName != "" {
+			if strings.Contains(t.Counsellor.Name, counsellorName) == false {
+				continue
 			}
 		}
 		resp = append(resp, t)

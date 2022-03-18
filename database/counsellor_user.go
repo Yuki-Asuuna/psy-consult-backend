@@ -83,12 +83,15 @@ func DeleteCounsellorUserByCounsellorID(counsellorID string) error {
 	return nil
 }
 
-func GetCounsellorUserList(page int, size int, role int) ([]*CounsellorUser, error) {
+func GetCounsellorUserList(page int, size int, role int, name string) ([]*CounsellorUser, error) {
 	counsellors := make([]*CounsellorUser, 0)
 	query := mysql.GetMySQLClient()
 	// role == 0 表示选择全部
 	if role != 0 {
 		query = query.Where("role = (?)", role)
+	}
+	if name != "" {
+		query = query.Where("name like ?", "%"+name+"%")
 	}
 	err := query.Offset(page * size).Limit(size).Find(&counsellors).Error
 	if err != nil {

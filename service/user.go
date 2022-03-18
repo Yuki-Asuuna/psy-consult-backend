@@ -157,7 +157,8 @@ func GetCounsellorList(c *gin.Context) {
 	page := helper.S2I(c.DefaultQuery("page", "0"))
 	size := helper.S2I(c.DefaultQuery("size", "10"))
 	role := helper.S2I(c.DefaultQuery("role", "0"))
-	list, err := database.GetCounsellorUserList(page, size, role)
+	name := c.DefaultQuery("name", "")
+	list, err := database.GetCounsellorUserList(page, size, role, name)
 	if err != nil {
 		logrus.Error(constant.Service+"GetCounsellorList Failed, err= %v", err)
 		c.Error(exception.ServerError())
