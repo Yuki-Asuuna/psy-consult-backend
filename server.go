@@ -2,10 +2,11 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/olivere/elastic/v7"
 	"github.com/sirupsen/logrus"
-	"io"
-	"os"
+	"gopkg.in/sohlich/elogrus.v7"
 	"psy-consult-backend/constant"
+	"psy-consult-backend/utils/ip"
 	"psy-consult-backend/utils/mysql"
 	"psy-consult-backend/utils/redis"
 	"psy-consult-backend/utils/sessions"
@@ -14,16 +15,42 @@ import (
 
 var r *gin.Engine
 
+const (
+	es_server = "http://124.221.197.218:9200"
+)
+
 func loggerInit() error {
-	logFile := "./log/sys.log"
-	logrus.SetReportCaller(true)
-	file_writer, err := os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
+	ip, err := ip.GetOutBoundIP()
 	if err != nil {
-		panic("Cannot open sys.log")
+		logrus.Error("Get LocalIP failed, err= %v", err)
+	}
+
+	client, err := elastic.NewClient(elastic.SetSniff(false), elastic.SetURL(es_server))
+	if err != nil {
+		panic(err)
 		return err
 	}
-	gin.DefaultWriter = io.MultiWriter(os.Stdout, file_writer)
-	logrus.SetOutput(io.MultiWriter(os.Stdout, file_writer))
+	logrus.Info("Init elastic client sucess")
+
+	hook, err := elogrus.NewElasticHook(client, ip, logrus.TraceLevel, "psy-backend-log")
+	if err != nil {
+		panic(err)
+		return err
+	}
+	logrus.AddHook(hook)
+	logrus.Info("Init elastic hook sucess")
+
+	logrus.SetReportCaller(true)
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	// 本地日志废除
+	//logFile := "./log/sys.log"
+	//file_writer, err := os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0755)
+	//if err != nil {
+	//	panic("Cannot open sys.log")
+	//	return err
+	//}
+	//gin.DefaultWriter = io.MultiWriter(os.Stdout, file_writer)
+	//logrus.SetOutput(io.MultiWriter(os.Stdout, file_writer))
 	r = gin.Default()
 	return nil
 }
