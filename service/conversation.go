@@ -365,3 +365,12 @@ func TodayStat(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
 }
+
+func Callback(c *gin.Context) {
+	// appid := c.Query("SdkAppid")
+	callbackCmd := c.Query("CallbackCommand")
+	// 单聊回调
+	if callbackCmd == "C2C.CallbackAfterSendMsg" {
+
+	}
+}
