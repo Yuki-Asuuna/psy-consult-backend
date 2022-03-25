@@ -6,7 +6,7 @@ import (
 )
 
 func TestSearchAllHistoryMessage(t *testing.T) {
-	res, err := SearchAllHistoryMessage("test1", "test2", 1647315054, 1648315677)
+	res, err := SearchAllHistoryMessage("test1", "test2", 1648191651, 1648192108)
 	if err != nil {
 		t.Error(err)
 		return
@@ -14,11 +14,12 @@ func TestSearchAllHistoryMessage(t *testing.T) {
 	for _, m := range res {
 		fmt.Println(m)
 	}
+	t.Log(res)
 	t.Log("Success")
 }
 
 func TestSendTextMessage(t *testing.T) {
-	err := SendTextMessage("test1", "test2", "什么问题？请说")
+	err := SendTextMessage("test1", "test2", "是因为遇到什么不顺心的事情了吗")
 	if err != nil {
 		t.Error(err)
 		return

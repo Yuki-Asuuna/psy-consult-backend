@@ -265,6 +265,28 @@ func ConversationSearch(c *gin.Context) {
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
 }
 
+func ConversationDetail(c *gin.Context) {
+	conversationID := c.Query("conversationID")
+	conversationInfo, err := database.GetConversationByConversationID(helper.S2I64(conversationID))
+	if err != nil {
+		logrus.Errorf(constant.Service+"ConversationExport Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	if conversationInfo == nil {
+		logrus.Warnf(constant.Service+"ConversationExport Failed, err= %v", "conversation does not exist")
+		c.JSON(http.StatusOK, utils.GenSuccessResponse(-2, "conversation does not exist", nil))
+		return
+	}
+	res, err := im_message.SearchAllHistoryMessage(conversationInfo.VisitorID, conversationInfo.CounsellorID, conversationInfo.StartTime.Unix(), conversationInfo.EndTime.Unix())
+	if err != nil {
+		logrus.Errorf(constant.Service+"ConversationExport Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	c.JSON(0, utils.GenSuccessResponse(0, "OK", res))
+}
+
 func ConversationExport(c *gin.Context) {
 	conversationID := c.Query("conversationID")
 	excel := excelize.NewFile()
