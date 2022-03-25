@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/sohlich/elogrus.v7"
 	"psy-consult-backend/constant"
+	"psy-consult-backend/middleware"
 	"psy-consult-backend/utils/ip"
 	"psy-consult-backend/utils/mysql"
 	"psy-consult-backend/utils/redis"
@@ -52,6 +53,7 @@ func loggerInit() error {
 	//gin.DefaultWriter = io.MultiWriter(os.Stdout, file_writer)
 	//logrus.SetOutput(io.MultiWriter(os.Stdout, file_writer))
 	r = gin.Default()
+	r.Use(middleware.Log4Gin())
 	return nil
 }
 
