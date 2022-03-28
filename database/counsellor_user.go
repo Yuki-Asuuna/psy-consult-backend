@@ -122,3 +122,14 @@ func UpdateLoginTimeByCounsellorID(counsellorID string) error {
 	}
 	return nil
 }
+
+func UpdateCounsellorAvatarByCounsellorID(counsellorID string, url string) error {
+	err := mysql.GetMySQLClient().Model(&CounsellorUser{}).Where("counsellor_id = (?)", counsellorID).Update(map[string]interface{}{
+		"avatar": url,
+	}).Error
+	if err != nil {
+		logrus.Errorf(constant.DAO+"UpdateCounsellorAvatarByCounsellorID Failed, err= %v, counsellorID= %v", err, counsellorID)
+		return err
+	}
+	return nil
+}

@@ -1,5 +1,7 @@
 # psy-consult-backend项目（心院咨询热线后端）
 
+**<u>注意：如果图片加载不出来，请挂vpn后刷新页面。</u>**
+
 ## 服务器1配置
 
 服务器ip&port：8.130.13.233:8000
@@ -19,6 +21,8 @@
 ## 后端整体架构图
 
 ![系统架构图](./pic/系统架构图.png)
+
+![](https://github.com/Yuki-Asuuna/psy-consult-backend/blob/main/pic/chevereto-demo.png)
 
 ## 访问示例
 

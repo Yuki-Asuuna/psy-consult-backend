@@ -237,3 +237,22 @@ func WxUpdate(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
 }
+
+func AvatarUpload(c *gin.Context) {
+	params := make(map[string]interface{})
+	c.BindJSON(&params)
+	url := params["url"].(string)
+	user := sessions.GetCounsellorInfoBySession(c)
+	if user == nil {
+		c.Error(exception.ServerError())
+		logrus.Error(constant.Service + "AvatarUpload Failed, user is nil")
+		return
+	}
+	err := database.UpdateCounsellorAvatarByCounsellorID(user.CounsellorID, url)
+	if err != nil {
+		logrus.Error(constant.Service+"AvatarUpload Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
+}

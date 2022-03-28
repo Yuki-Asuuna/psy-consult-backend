@@ -33,6 +33,7 @@ func httpHandlerInit() {
 		authGroup.POST("/logout", middleware.AuthMiddleWare(), service.Logout)
 		authGroup.GET("/me", middleware.AuthMiddleWare(), service.Me)
 		authGroup.POST("/password", middleware.AuthMiddleWare(), service.ChangePassword)
+		authGroup.POST("/avatar_upload", middleware.AuthMiddleWare(), service.AvatarUpload)
 	}
 
 	userGroup := r.Group("/user")
