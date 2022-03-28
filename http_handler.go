@@ -73,6 +73,7 @@ func httpHandlerInit() {
 		conversationGrop.GET("/export", service.ConversationExport)
 		conversationGrop.GET("/detail", service.ConversationDetail)
 		conversationGrop.POST("/callback", service.Callback)
+		conversationGrop.GET("/poll", service.Pool)
 	}
 
 	evaluateGroup := r.Group("/evaluate")

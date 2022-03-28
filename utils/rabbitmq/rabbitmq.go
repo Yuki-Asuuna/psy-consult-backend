@@ -20,13 +20,10 @@ func GetConnection() *amqp.Connection {
 	return conn
 }
 
-func GetChannel() *amqp.Channel {
-	return channel
-}
-
 func Init() error {
 	url := fmt.Sprintf("amqp://%s:%s@%s/", mq_user, mq_password, mq_address)
-	conn, err := amqp.Dial(url)
+	var err error
+	conn, err = amqp.Dial(url)
 	if err != nil {
 		return err
 	}
@@ -52,12 +49,22 @@ func PushMessage(queueName string, msg []byte) error {
 }
 
 func GetMessage(queueName string) ([]byte, error) {
-	msg, ok, err := channel.Get(queueName, true)
-	if !ok {
+	// 判断队列是否存在
+	//if _, err := channel.QueueDeclarePassive(queueName, true, true, false, false, nil); err != nil {
+	//	logrus.Warnf(constant.DAO+"GetMessage Failed, queue= %v does not exist", queueName)
+	//	return nil, err
+	//}
+	_, err := channel.QueueDeclare(queueName, true, true, false, false, nil)
+	if err != nil {
 		return nil, err
 	}
+
+	msg, ok, err := channel.Get(queueName, true)
 	if err != nil {
 		logrus.Error(constant.DAO+"GetMessage Failed, err= %v", err)
+		return nil, err
+	}
+	if !ok {
 		return nil, err
 	}
 	return msg.Body, nil

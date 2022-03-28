@@ -415,3 +415,17 @@ func Callback(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
 }
+
+func Pool(c *gin.Context) {
+	conversationID := c.Query("conversationID")
+
+	// 从mq中拉取一条消息
+	msg, err := rabbitmq.GetMessage(conversationID)
+	if err != nil {
+		logrus.Errorf(constant.Service+"Pool Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", string(msg)))
+}
