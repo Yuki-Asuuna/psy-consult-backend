@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/xuri/excelize/v2"
@@ -12,6 +13,7 @@ import (
 	"psy-consult-backend/tencent-im/im_message"
 	"psy-consult-backend/utils"
 	"psy-consult-backend/utils/helper"
+	"psy-consult-backend/utils/rabbitmq"
 	"psy-consult-backend/utils/redis"
 	"psy-consult-backend/utils/sessions"
 	"strings"
@@ -278,7 +280,12 @@ func ConversationDetail(c *gin.Context) {
 		c.JSON(http.StatusOK, utils.GenSuccessResponse(-2, "conversation does not exist", nil))
 		return
 	}
-	res, err := im_message.SearchAllHistoryMessage(conversationInfo.VisitorID, conversationInfo.CounsellorID, conversationInfo.StartTime.Unix(), conversationInfo.EndTime.Unix())
+	EndTime := conversationInfo.EndTime.Unix()
+	// 该会话尚未结束，当前时间作为EndTime
+	if conversationInfo.Status == 0 {
+		EndTime = time.Now().Unix()
+	}
+	res, err := im_message.SearchAllHistoryMessage(conversationInfo.VisitorID, conversationInfo.CounsellorID, conversationInfo.StartTime.Unix(), EndTime)
 	if err != nil {
 		logrus.Errorf(constant.Service+"ConversationExport Failed, err= %v", err)
 		c.Error(exception.ServerError())
@@ -366,11 +373,45 @@ func TodayStat(c *gin.Context) {
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
 }
 
+func searchConversation(fromAcc, toAcc string) *database.Conversation {
+	// status:0 进行中 status:1 已结束
+	c, err := database.GetConversationBySender(fromAcc, toAcc)
+	if err != nil {
+		return nil
+	}
+	if c != nil {
+		return c
+	}
+	c, err = database.GetConversationBySender(toAcc, fromAcc)
+	if err != nil {
+		return nil
+	}
+	return c
+}
+
 func Callback(c *gin.Context) {
 	// appid := c.Query("SdkAppid")
 	callbackCmd := c.Query("CallbackCommand")
 	// 单聊回调
 	if callbackCmd == "C2C.CallbackAfterSendMsg" {
-
+		params := make(map[string]interface{})
+		c.BindJSON(&params)
+		fromAcc := params["From_Account"].(string)
+		toAcc := params["To_Account"].(string)
+		conversation := searchConversation(fromAcc, toAcc)
+		if conversation == nil {
+			logrus.Warnf(constant.Service+"Callback Ignored, msg does not belong to any conversation, fromAccount= %v, toAccount= %v", fromAcc, toAcc)
+			c.JSON(http.StatusOK, utils.GenSuccessResponse(-4, "msg does not belong to any conversation", nil))
+		}
+		body, _ := json.Marshal(params)
+		err := rabbitmq.PushMessage(helper.I642S(conversation.ConversationID), body)
+		if err != nil {
+			logrus.Errorf(constant.Service+"Callback Failed, err= %v", err)
+			c.Error(exception.ServerError())
+			return
+		}
+	} else {
+		c.JSON(http.StatusOK, utils.GenSuccessResponse(-2, "cmd does not exist", nil))
 	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
 }

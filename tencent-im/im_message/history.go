@@ -83,7 +83,7 @@ func SearchAllHistoryMessage(fromAccount string, toAccount string, minTime int64
 		resp, err := SearchHistoryMessage(fromAccount, toAccount, minTime, maxTime, lastMsgKey, lastMsgTime)
 		if err != nil {
 			logrus.Warn(constant.REST+"SearchAllHistoryMessage Failed, err= %v", err)
-			continue
+			return nil, err
 		}
 		res = append(res, resp.MsgList...)
 		lastMsgKey = resp.LastMsgKey

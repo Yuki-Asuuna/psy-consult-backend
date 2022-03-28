@@ -19,7 +19,7 @@ func TestSearchAllHistoryMessage(t *testing.T) {
 }
 
 func TestSendTextMessage(t *testing.T) {
-	err := SendTextMessage("test1", "test2", "是因为遇到什么不顺心的事情了吗")
+	err := SendTextMessage("37f525e2b6fc3cb4abd882f708ab80eb", "ace23c321i823", "是因为遇到什么不顺心的事情了吗")
 	if err != nil {
 		t.Error(err)
 		return

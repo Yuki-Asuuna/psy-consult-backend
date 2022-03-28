@@ -9,6 +9,7 @@ import (
 	"psy-consult-backend/middleware"
 	"psy-consult-backend/utils/ip"
 	"psy-consult-backend/utils/mysql"
+	"psy-consult-backend/utils/rabbitmq"
 	"psy-consult-backend/utils/redis"
 	"psy-consult-backend/utils/sessions"
 	"psy-consult-backend/utils/snowflake"
@@ -21,7 +22,7 @@ const (
 )
 
 func loggerInit() error {
-	ip, err := ip.GetOutBoundIP()
+	IP, err := ip.GetOutBoundIP()
 	if err != nil {
 		logrus.Error("Get LocalIP failed, err= %v", err)
 	}
@@ -33,7 +34,7 @@ func loggerInit() error {
 	}
 	logrus.Info("Init elastic client sucess")
 
-	hook, err := elogrus.NewElasticHook(client, ip, logrus.TraceLevel, "psy-backend-log")
+	hook, err := elogrus.NewElasticHook(client, IP, logrus.TraceLevel, "psy-backend-log")
 	if err != nil {
 		panic(err)
 		return err
@@ -69,6 +70,13 @@ func main() {
 
 	// init redis
 	redis.RedisInit()
+
+	// init mq
+	if err := rabbitmq.Init(); err != nil {
+		logrus.Errorf(constant.Main+"Init RabbitMQ Failed, err= %v", err)
+		return
+	}
+	logrus.Infof(constant.Main + "Init RabbitMQ Success!")
 
 	// init session
 	if err := sessions.SessionInit(); err != nil {

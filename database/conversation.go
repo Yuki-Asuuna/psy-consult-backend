@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"psy-consult-backend/constant"
 	"psy-consult-backend/utils/mysql"
@@ -72,4 +73,22 @@ func GetConversationListByCounsellorIDAndTimeInterval(counsellorID string, start
 		return nil, err
 	}
 	return conversations, nil
+}
+
+func GetConversationBySender(fromAccount string, toAccount string) (*Conversation, error) {
+	conversation := &Conversation{}
+	query := mysql.GetMySQLClient()
+	// 正在进行
+	query = query.Where("status = (0)")
+	query = query.Where("counsellor_id = (?)", fromAccount)
+	query = query.Where("visitor_id = (?)", toAccount)
+	err := query.First(conversation).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		logrus.Errorf(constant.DAO+"GetConversationBySender Failed, err= %v", err)
+		return nil, err
+	}
+	return conversation, nil
 }
