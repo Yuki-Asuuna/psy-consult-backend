@@ -32,6 +32,7 @@ func httpHandlerInit() {
 		authGroup.GET("/wx_me", service.WxMe)
 		authGroup.POST("/logout", middleware.AuthMiddleWare(), service.Logout)
 		authGroup.GET("/me", middleware.AuthMiddleWare(), service.Me)
+		authGroup.POST("/me", middleware.AuthMiddleWare(), service.PostMe)
 		authGroup.POST("/password", middleware.AuthMiddleWare(), service.ChangePassword)
 		authGroup.POST("/avatar_upload", middleware.AuthMiddleWare(), service.AvatarUpload)
 	}

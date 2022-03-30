@@ -133,3 +133,25 @@ func UpdateCounsellorAvatarByCounsellorID(counsellorID string, url string) error
 	}
 	return nil
 }
+
+func UpdateCounsellorUserBySelfCounsellorID(counsellorID string, name string, gender int, age int, identityNumber string, phoneNumber string, avatar string, email string, title string, department string, qualification string, introduction string, maxConsults int) error {
+	err := mysql.GetMySQLClient().Model(&CounsellorUser{}).Where("counsellor_id = (?)", counsellorID).Update(map[string]interface{}{
+		"name":            name,
+		"gender":          gender,
+		"age":             age,
+		"identity_number": identityNumber,
+		"phone_number":    phoneNumber,
+		"avatar":          avatar,
+		"email":           email,
+		"title":           title,
+		"department":      department,
+		"qualification":   qualification,
+		"introduction":    introduction,
+		"max_consults":    maxConsults,
+	}).Error
+	if err != nil {
+		logrus.Errorf(constant.DAO+"UpdateCounsellorUserBySelfCounsellorID Failed, err= %v, counsellorID= %v", err, counsellorID)
+		return err
+	}
+	return nil
+}

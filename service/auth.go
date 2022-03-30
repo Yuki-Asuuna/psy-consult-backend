@@ -256,3 +256,35 @@ func AvatarUpload(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
 }
+
+func PostMe(c *gin.Context) {
+	user := sessions.GetCounsellorInfoBySession(c)
+	if user == nil {
+		c.Error(exception.ServerError())
+		logrus.Error(constant.Service + "Me Get Personal Info Failed, user is nil")
+		return
+	}
+	params := make(map[string]interface{})
+	c.BindJSON(&params)
+	name := params["name"].(string)
+	gender := int(params["gender"].(float64))
+	age := int(params["age"].(float64))
+	identityNumber := params["identityNumber"].(string)
+	phoneNumber := params["phoneNumber"].(string)
+	avatar := params["avatar"].(string)
+	email := params["email"].(string)
+	title := params["title"].(string)
+	department := params["department"].(string)
+	qualification := params["qualification"].(string)
+	introduction := params["introduction"].(string)
+	maxConsults := int(params["maxConsults"].(float64))
+	counsellorID := user.CounsellorID
+	err := database.UpdateCounsellorUserBySelfCounsellorID(counsellorID, name, gender, age, identityNumber, phoneNumber, avatar, email, title, department, qualification, introduction, maxConsults)
+	if err != nil {
+		logrus.Error(constant.Service+"AdminPostMs Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
+
+}
