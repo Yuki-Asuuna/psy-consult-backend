@@ -38,6 +38,9 @@ func PutArrange(c *gin.Context) {
 	for _, counsellorID := range counsellorIDs {
 		counsellorInfo, ok := counsellorInfoMap[counsellorID]
 		if ok {
+			if database.CheckUnique(counsellorInfo.CounsellorID, arrangeTime) == false {
+				continue
+			}
 			err = database.AddArrangement(counsellorInfo.CounsellorID, counsellorInfo.Role, counsellorInfo.Name, arrangeTime)
 			if err != nil {
 				logrus.Errorf(constant.Service+"PutArrange Failed, err= %v", err)

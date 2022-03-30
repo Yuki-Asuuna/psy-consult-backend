@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"psy-consult-backend/constant"
 	"psy-consult-backend/utils/mysql"
@@ -39,4 +40,16 @@ func DeleteArrangement(arrangeID int64) error {
 		return err
 	}
 	return nil
+}
+
+func CheckUnique(counsellorID string, arrangeTime time.Time) bool {
+	ret := Arrangement{}
+	err := mysql.GetMySQLClient().Where("arrange_time = (?) and counsellor_id = (?)", arrangeTime, counsellorID).First(&ret).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return true
+		}
+		logrus.Errorf(constant.DAO+"CheckUnique Failed, err= %v", err)
+	}
+	return false
 }
