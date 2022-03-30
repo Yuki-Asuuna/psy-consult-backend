@@ -5,11 +5,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"psy-consult-backend/constant"
 	"psy-consult-backend/utils/mysql"
+	"time"
 )
 
 func AddVisitorUser(visitorID string) error {
 	visitor := VisitorUser{
 		VisitorID: visitorID,
+		LastLogin: time.Now(),
 	}
 	if err := mysql.GetMySQLClient().Create(&visitor).Error; err != nil {
 		logrus.Errorf(constant.DAO+"AddVisitorUser Failed, err= %v", err)

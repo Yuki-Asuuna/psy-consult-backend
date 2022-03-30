@@ -176,7 +176,7 @@ func WxLogin(c *gin.Context) {
 		c.Error(exception.ServerError())
 		return
 	}
-	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
 }
 
 func WxMe(c *gin.Context) {
