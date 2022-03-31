@@ -44,7 +44,7 @@ func BanVisitor(c *gin.Context) {
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
 	visitorID := params["visitorID"].(string)
-	err := database.UpdateVisitorUserByVisitorID(visitorID, gin.H{"status": "1"})
+	err := database.UpdateVisitorUserByVisitorID(visitorID, gin.H{"status": 1})
 	if err != nil {
 		logrus.Errorf(constant.Service+"BanVisitor Failed, err= %v", err)
 		c.Error(exception.ServerError())
