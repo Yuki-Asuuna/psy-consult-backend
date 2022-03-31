@@ -15,7 +15,8 @@ import (
 func GetVisitorList(c *gin.Context) {
 	page := helper.S2I(c.DefaultQuery("page", "0"))
 	size := helper.S2I(c.DefaultQuery("size", "10"))
-	list, err := database.GetVisitorUserList(page, size)
+	name := c.DefaultQuery("name", "")
+	list, err := database.GetVisitorUserList(page, size, name)
 	if err != nil {
 		logrus.Error(constant.Service+"GetVisitorList Failed, err= %v", err)
 		c.Error(exception.ServerError())

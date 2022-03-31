@@ -32,9 +32,12 @@ func GetVisitorUserByVisitorID(visitorID string) (*VisitorUser, error) {
 	return visitor, nil
 }
 
-func GetVisitorUserList(page int, size int) ([]*VisitorUser, error) {
+func GetVisitorUserList(page int, size int, name string) ([]*VisitorUser, error) {
 	visitors := make([]*VisitorUser, 0)
 	query := mysql.GetMySQLClient()
+	if name != "" {
+		query = query.Where("name like ?", "%"+name+"%")
+	}
 	err := query.Offset(page * size).Limit(size).Find(&visitors).Error
 	if err != nil {
 		logrus.Errorf(constant.DAO+"GetVisitorUserList Failed, err= %v", err)
