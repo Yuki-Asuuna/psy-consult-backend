@@ -32,6 +32,21 @@ func GetVisitorUserByVisitorID(visitorID string) (*VisitorUser, error) {
 	return visitor, nil
 }
 
+func GetVisitorUserListCount(name string) (int, error) {
+	ret := 0
+	visitors := make([]*VisitorUser, 0)
+	query := mysql.GetMySQLClient()
+	if name != "" {
+		query = query.Where("name like ?", "%"+name+"%")
+	}
+	err := query.Find(&visitors).Count(&ret).Error
+	if err != nil {
+		logrus.Errorf(constant.DAO+"GetVisitorUserListCount Failed, err= %v", err)
+		return 0, err
+	}
+	return ret, nil
+}
+
 func GetVisitorUserList(page int, size int, name string) ([]*VisitorUser, error) {
 	visitors := make([]*VisitorUser, 0)
 	query := mysql.GetMySQLClient()

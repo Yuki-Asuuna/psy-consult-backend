@@ -22,9 +22,9 @@ func GetVisitorList(c *gin.Context) {
 		c.Error(exception.ServerError())
 		return
 	}
-	resp := make([]*api.VisitorInfoResponse, 0)
+	vlist := make([]*api.VisitorInfoResponse, 0)
 	for _, c := range list {
-		resp = append(resp, &api.VisitorInfoResponse{
+		vlist = append(vlist, &api.VisitorInfoResponse{
 			VisitorID:        c.VisitorID,
 			Username:         c.Username,
 			Name:             c.Name,
@@ -37,6 +37,16 @@ func GetVisitorList(c *gin.Context) {
 			EmergencyPhone:   c.EmergencyPhone,
 			HasAgreed:        c.HasAgreed,
 		})
+	}
+	cnt, err := database.GetVisitorUserListCount(name)
+	if err != nil {
+		logrus.Error(constant.Service+"GetVisitorList Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	resp := &api.GetVisitorListResponse{
+		VisitorList: vlist,
+		TotalCount:  cnt,
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
 }

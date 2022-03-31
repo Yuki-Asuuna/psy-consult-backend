@@ -15,3 +15,8 @@ type VisitorInfoResponse struct {
 	EmergencyPhone   string    `json:"emergencyPhone"`
 	HasAgreed        int       `json:"hasAgreed"`
 }
+
+type GetVisitorListResponse struct {
+	VisitorList []*VisitorInfoResponse `json:"visitorList"`
+	TotalCount  int                    `json:"totalCount"`
+}
