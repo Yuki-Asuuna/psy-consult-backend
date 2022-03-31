@@ -49,3 +49,8 @@ type SuperuserGetResponse struct {
 	Introduction   string    `json:"introduction"`
 	MaxConsults    int       `json:"maxConsults"`
 }
+
+type GetCounsellorListResponse struct {
+	CounsellorList []*CounsellorInfoResponse `json:"counsellorList"`
+	TotalCount     int                       `json:"totalCount"`
+}

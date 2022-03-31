@@ -155,3 +155,22 @@ func UpdateCounsellorUserBySelfCounsellorID(counsellorID string, name string, ge
 	}
 	return nil
 }
+
+func GetCounsellorUserListCount(role int, name string) (int, error) {
+	counsellors := make([]*CounsellorUser, 0)
+	query := mysql.GetMySQLClient()
+	cnt := 0
+	// role == 0 表示选择全部
+	if role != 0 {
+		query = query.Where("role = (?)", role)
+	}
+	if name != "" {
+		query = query.Where("name like ?", "%"+name+"%")
+	}
+	err := query.Find(&counsellors).Count(&cnt).Error
+	if err != nil {
+		logrus.Errorf(constant.DAO+"GetCounsellorUserList Failed, err= %v", err)
+		return 0, err
+	}
+	return cnt, nil
+}

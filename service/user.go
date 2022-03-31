@@ -164,7 +164,7 @@ func GetCounsellorList(c *gin.Context) {
 		c.Error(exception.ServerError())
 		return
 	}
-	resp := make([]*api.CounsellorInfoResponse, 0)
+	clist := make([]*api.CounsellorInfoResponse, 0)
 	for _, c := range list {
 		t := &api.CounsellorInfoResponse{
 			CounsellorID:   c.CounsellorID,
@@ -186,7 +186,17 @@ func GetCounsellorList(c *gin.Context) {
 			MaxConsults:    c.MaxConsults,
 		}
 		t.IsOnline = redis.CheckOnline(c.CounsellorID)
-		resp = append(resp, t)
+		clist = append(clist, t)
+	}
+	cnt, err := database.GetCounsellorUserListCount(role, name)
+	if err != nil {
+		logrus.Error(constant.Service+"GetCounsellorList Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	resp := &api.GetCounsellorListResponse{
+		CounsellorList: clist,
+		TotalCount:     cnt,
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
 }
