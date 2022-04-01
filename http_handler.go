@@ -47,7 +47,6 @@ func httpHandlerInit() {
 		userGroup.PUT("/bind", service.AddBinding)
 		userGroup.DELETE("/bind", service.DeleteBinding)
 		userGroup.GET("/bind", service.GetBinding)
-
 	}
 
 	visitorGroup := r.Group("/visitor")

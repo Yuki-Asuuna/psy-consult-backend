@@ -10,6 +10,7 @@ import (
 	"psy-consult-backend/exception"
 	"psy-consult-backend/utils"
 	"psy-consult-backend/utils/helper"
+	"psy-consult-backend/utils/sessions"
 )
 
 func GetVisitorList(c *gin.Context) {
@@ -52,6 +53,11 @@ func GetVisitorList(c *gin.Context) {
 }
 
 func BanVisitor(c *gin.Context) {
+	// 判断有无管理员权限
+	if info := sessions.GetCounsellorInfoBySession(c); info == nil || info.Role != 0 {
+		c.Error(exception.AuthError())
+		return
+	}
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
 	visitorID := params["visitorID"].(string)
@@ -65,6 +71,11 @@ func BanVisitor(c *gin.Context) {
 }
 
 func ActivateVisitor(c *gin.Context) {
+	// 判断有无管理员权限
+	if info := sessions.GetCounsellorInfoBySession(c); info == nil || info.Role != 0 {
+		c.Error(exception.AuthError())
+		return
+	}
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
 	visitorID := params["visitorID"].(string)
