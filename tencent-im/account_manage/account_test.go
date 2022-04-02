@@ -11,7 +11,7 @@ func TestAddIMSDKAccount(t *testing.T) {
 }
 
 func TestDeleteIMSDKAccount(t *testing.T) {
-	err := DeleteIMSDKAccount("cce0d4561a778e03bacd7c4f1065577c")
+	err := DeleteIMSDKAccount("50809ebcb0d153cce1108159612eb7bf")
 	if err != nil {
 		t.Error(err)
 	}
