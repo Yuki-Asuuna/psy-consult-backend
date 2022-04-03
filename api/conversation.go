@@ -20,3 +20,8 @@ type TodayStatResponse struct {
 	Minute     int `json:"minute"`
 	Second     int `json:"second"`
 }
+
+type NStatResponse struct {
+	DateList  []string `json:"dateList"`
+	CountList []int    `json:"countList"`
+}

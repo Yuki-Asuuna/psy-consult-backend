@@ -23,3 +23,11 @@ func GetTodayEndTimeStamp() int64 {
 	res = res.Add(-1)
 	return res.Unix()
 }
+
+func GetNDaysBefore(n int) int64 {
+	now := time.Now()
+	timeStr := now.Format("2006-01-02")
+	res, _ := time.Parse("2006-01-02", timeStr)
+	res = res.AddDate(0, 0, -n)
+	return res.Unix()
+}

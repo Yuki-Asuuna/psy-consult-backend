@@ -429,3 +429,42 @@ func Pool(c *gin.Context) {
 
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", string(msg)))
 }
+
+func NStat(c *gin.Context) {
+	n := helper.S2I(c.DefaultQuery("days", "7"))
+	EndTime := helper.GetTodayEndTimeStamp()
+	StartTime := helper.GetNDaysBefore(n)
+	conversations, err := database.GetConversationList(0, 999999, StartTime, EndTime)
+	if err != nil {
+		logrus.Errorf(constant.Service+"Nstat Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	stat := make(map[string]int)
+	tm, _ := time.Parse("2006-01-02", time.Now().Format("2006-01-02"))
+	for _, c := range conversations {
+		tmstr := c.StartTime.Format("2006-01-02")
+		stat[tmstr] += 1
+	}
+	dateList := make([]string, 0)
+	countList := make([]int, 0)
+	for i := 0; i < n; i++ {
+		tmstr := tm.Format("2006-01-02")
+		val, ok := stat[tmstr]
+		if !ok {
+			countList = append(countList, 0)
+		} else {
+			countList = append(countList, val)
+		}
+		dateList = append(dateList, tmstr)
+		tm = tm.AddDate(0, 0, -1)
+		// countList = append(countList,stat)
+	}
+	helper.ReverseSlice(dateList)
+	helper.ReverseSlice(countList)
+	resp := api.NStatResponse{
+		DateList:  dateList,
+		CountList: countList,
+	}
+	c.JSON(0, utils.GenSuccessResponse(0, "OK", resp))
+}
