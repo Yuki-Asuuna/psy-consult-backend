@@ -61,6 +61,7 @@ func httpHandlerInit() {
 		arrangeGroup.PUT("/add", service.PutArrange)
 		arrangeGroup.GET("/get", service.GetArrange)
 		arrangeGroup.DELETE("/delete", service.DeleteArrange)
+		arrangeGroup.POST("/batch", service.GetBatchArrange)
 	}
 
 	conversationGrop := r.Group("/conversation")
