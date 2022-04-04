@@ -373,6 +373,40 @@ func TodayStat(c *gin.Context) {
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
 }
 
+func TodayStatAll(c *gin.Context) {
+	counsellor := sessions.GetCounsellorInfoBySession(c)
+	if counsellor == nil || counsellor.Role != 0 {
+		c.Error(exception.ServerError())
+		return
+	}
+	lst, err := database.GetConversationList(0, 99999, helper.GetTodayStartTimeStamp(), helper.GetTodayEndTimeStamp())
+	if err != nil {
+		logrus.Errorf(constant.Service+"TodayStatAll Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	if lst == nil {
+		c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", api.TodayStatResponse{}))
+		return
+	}
+	var d time.Duration
+	for _, c := range lst {
+		delta := c.EndTime.Sub(c.StartTime)
+		d += delta
+	}
+	seconds := int(d.Seconds())
+	hour := int(seconds / 3600)
+	minute := int((seconds - hour*3600) / 60)
+	second := seconds - hour*3600 - minute*60
+	resp := api.TodayStatResponse{
+		TotalCount: len(lst),
+		Hour:       hour,
+		Minute:     minute,
+		Second:     second,
+	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
+}
+
 func searchConversation(fromAcc, toAcc string) *database.Conversation {
 	// status:0 进行中 status:1 已结束
 	c, err := database.GetConversationBySender(fromAcc, toAcc)

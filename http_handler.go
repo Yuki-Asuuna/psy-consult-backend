@@ -75,6 +75,7 @@ func httpHandlerInit() {
 		conversationGrop.POST("/callback", service.Callback)
 		conversationGrop.GET("/poll", service.Pool)
 		conversationGrop.GET("/n_stat", service.NStat)
+		conversationGrop.GET("/today_stat_all", service.TodayStatAll)
 	}
 
 	evaluateGroup := r.Group("/evaluate")
