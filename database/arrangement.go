@@ -53,3 +53,25 @@ func CheckUnique(counsellorID string, arrangeTime time.Time) bool {
 	}
 	return false
 }
+
+func GetArrangementsByArrangeTimeList(arrangeTimeList []time.Time) (map[int64][]*Arrangement, error) {
+	arr := make([]*Arrangement, 0)
+	err := mysql.GetMySQLClient().Where("arrange_time in (?)", arrangeTimeList).Find(&arr).Error
+	if err != nil {
+		logrus.Errorf(constant.DAO+"GetArrangementsByArrangeTimeList Failed, err= %v", err)
+		return nil, nil
+	}
+	ret := make(map[int64][]*Arrangement)
+	for _, a := range arr {
+		unixTime := a.ArrangeTime.Unix()
+		_, ok := ret[unixTime]
+		if !ok {
+			list := make([]*Arrangement, 0)
+			list = append(list, a)
+			ret[unixTime] = list
+		} else {
+			ret[unixTime] = append(ret[unixTime], a)
+		}
+	}
+	return ret, nil
+}

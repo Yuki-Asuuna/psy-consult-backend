@@ -129,45 +129,53 @@ func GetBatchArrange(c *gin.Context) {
 	c.BindJSON(&params)
 	arrangeTimeList := params["arrangeTimeList"].([]interface{})
 	allArrange := make([]*api.GetArrangeResponse, 0)
+	req := make([]time.Time, 0)
 	for _, v := range arrangeTimeList {
 		arrangeTime := int64(v.(float64))
-		arragements, err := database.GetArrangementsByArrangeTime(time.Unix(arrangeTime, 0))
-		if err != nil {
-			logrus.Errorf(constant.Service+"GetArrange Failed, err= %v", err)
-			c.Error(exception.ServerError())
-			return
-		}
-		counsellorIDs := make([]string, 0)
-		for _, arragement := range arragements {
-			counsellorIDs = append(counsellorIDs, arragement.CounsellorID)
-		}
-		counsellorID2InfoMap := make(map[string]*database.CounsellorUser, 0)
-		if counsellorID2InfoMap, err = database.GetCounsellorUsersByCounsellorIDs(counsellorIDs); err != nil {
-			logrus.Errorf(constant.Service+"GetArrange Failed, err= %v", err)
-			c.Error(exception.ServerError())
-			return
-		}
+		req = append(req, time.Unix(arrangeTime, 0))
+	}
+	ArrangeTimeMap, err := database.GetArrangementsByArrangeTimeList(req)
+	if err != nil {
+		c.Error(exception.ServerError())
+		logrus.Errorf(constant.Service+"GetBatchArrange Failed, err= %v", err)
+		return
+	}
+
+	counsellorID2InfoMap := make(map[string]*database.CounsellorUser)
+	counsellorUserList, err := database.GetCounsellorUserList(0, 99999, 0, "")
+	if err != nil {
+		c.Error(exception.ServerError())
+		logrus.Errorf(constant.Service+"GetBatchArrange Failed, err= %v", err)
+		return
+	}
+	for _, c := range counsellorUserList {
+		counsellorID2InfoMap[c.CounsellorID] = c
+	}
+
+	for _, v := range arrangeTimeList {
+		arrangeTime := int64(v.(float64))
+		arrangements := ArrangeTimeMap[arrangeTime]
 		counsellors := make([]*api.ArrangeResponse, 0)
 		supervisors := make([]*api.ArrangeResponse, 0)
-		for _, arragement := range arragements {
-			counsellor, _ := counsellorID2InfoMap[arragement.CounsellorID]
+		for _, arrangement := range arrangements {
+			counsellor, _ := counsellorID2InfoMap[arrangement.CounsellorID]
 			var name string
 			if counsellor != nil {
 				name = counsellor.Name
 			}
 			t := &api.ArrangeResponse{
-				ArrangeID:    arragement.ArrangeID,
-				ArrangeTime:  arragement.ArrangeTime,
-				Role:         arragement.Role,
-				CounsellorID: arragement.CounsellorID,
+				ArrangeID:    arrangement.ArrangeID,
+				ArrangeTime:  arrangement.ArrangeTime,
+				Role:         arrangement.Role,
+				CounsellorID: arrangement.CounsellorID,
 				Name:         name,
 			}
 			// 咨询师
-			if arragement.Role == 1 {
+			if arrangement.Role == 1 {
 				counsellors = append(counsellors, t)
 			}
 			// 督导
-			if arragement.Role == 2 {
+			if arrangement.Role == 2 {
 				supervisors = append(supervisors, t)
 			}
 		}
@@ -177,5 +185,53 @@ func GetBatchArrange(c *gin.Context) {
 		}
 		allArrange = append(allArrange, resp)
 	}
+	//for _, v := range arrangeTimeList {
+	//	arrangeTime := int64(v.(float64))
+	//	arragements, err := database.GetArrangementsByArrangeTime(time.Unix(arrangeTime, 0))
+	//	if err != nil {
+	//		logrus.Errorf(constant.Service+"GetArrange Failed, err= %v", err)
+	//		c.Error(exception.ServerError())
+	//		return
+	//	}
+	//	counsellorIDs := make([]string, 0)
+	//	for _, arragement := range arragements {
+	//		counsellorIDs = append(counsellorIDs, arragement.CounsellorID)
+	//	}
+	//	counsellorID2InfoMap := make(map[string]*database.CounsellorUser, 0)
+	//	if counsellorID2InfoMap, err = database.GetCounsellorUsersByCounsellorIDs(counsellorIDs); err != nil {
+	//		logrus.Errorf(constant.Service+"GetArrange Failed, err= %v", err)
+	//		c.Error(exception.ServerError())
+	//		return
+	//	}
+	//	counsellors := make([]*api.ArrangeResponse, 0)
+	//	supervisors := make([]*api.ArrangeResponse, 0)
+	//	for _, arragement := range arragements {
+	//		counsellor, _ := counsellorID2InfoMap[arragement.CounsellorID]
+	//		var name string
+	//		if counsellor != nil {
+	//			name = counsellor.Name
+	//		}
+	//		t := &api.ArrangeResponse{
+	//			ArrangeID:    arragement.ArrangeID,
+	//			ArrangeTime:  arragement.ArrangeTime,
+	//			Role:         arragement.Role,
+	//			CounsellorID: arragement.CounsellorID,
+	//			Name:         name,
+	//		}
+	//		// 咨询师
+	//		if arragement.Role == 1 {
+	//			counsellors = append(counsellors, t)
+	//		}
+	//		// 督导
+	//		if arragement.Role == 2 {
+	//			supervisors = append(supervisors, t)
+	//		}
+	//	}
+	//	resp := &api.GetArrangeResponse{
+	//		Counsellors: counsellors,
+	//		Supervisors: supervisors,
+	//	}
+	//	allArrange = append(allArrange, resp)
+	//}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", allArrange))
 }
