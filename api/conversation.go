@@ -12,6 +12,7 @@ type ConversationSearchResponse struct {
 	IsHelped       int64                   `json:"isHelped"`
 	Supervisor     *CounsellorInfoResponse `json:"supervisorInfo"`
 	Evaluation     *EvaluationInfoResponse `json:"evaluation"`
+	GroupID        string                  `json:"groupID"`
 }
 
 type TodayStatResponse struct {

@@ -104,6 +104,12 @@ func Supervise(c *gin.Context) {
 		c.JSON(http.StatusOK, utils.GenSuccessResponse(-2, "非法会话ID", nil))
 		return
 	}
+	err = im_message.AddGroupMember(conversation.GroupID, supervisorID)
+	if err != nil {
+		logrus.Errorf(constant.Service+"Supervise Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
 
 	// 发起会话（是否后端要参与？）
 	//err = im_message.SendTextMessage(counsellor.CounsellorID, supervisorID, "我在咨询中遇到了一个问题，想向您求助")
@@ -172,6 +178,7 @@ func ConversationSearch(c *gin.Context) {
 			EndTime:        conv.EndTime,
 			Status:         conv.Status,
 			IsHelped:       conv.IsHelped,
+			GroupID:        conv.GroupID,
 		}
 		counsellor, err := database.GetCounsellorUserByCounsellorID(conv.CounsellorID)
 		if err != nil {
