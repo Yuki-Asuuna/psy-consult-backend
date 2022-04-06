@@ -72,3 +72,59 @@ type SearchHistoryMessageResponse struct {
 	LastMsgKey   string        `json:"LastMsgKey"`
 	MsgList      []MessageInfo `json:"MsgList"`
 }
+
+type GroupMember struct {
+	MemberAccount string `json:"Member_Account"`
+}
+
+type CreateGroupRequest struct {
+	Name       string        `json:"Name"`
+	Type       string        `json:"Type"`
+	MemberList []GroupMember `json:"MemberList"`
+}
+
+type CreateGroupResponse struct {
+	ActionStatus string `json:"ActionStatus"`
+	ErrorInfo    string `json:"ErrorInfo"`
+	ErrorCode    int    `json:"ErrorCode"`
+	GroupId      string `json:"GroupId"`
+}
+
+type GroupMessage struct {
+	MsgType    string             `json:"MsgType"`
+	MsgContent TextMessageContent `json:"MsgContent"`
+}
+
+type SendGroupMessageRequest struct {
+	GroupId     string         `json:"GroupId"`
+	FromAccount string         `json:"From_Account"`
+	Random      int64          `json:"Random"`
+	MsgBody     []GroupMessage `json:"MsgBody"`
+}
+
+type SendGroupMessageResponse struct {
+	ActionStatus string `json:"ActionStatus"`
+	ErrorInfo    string `json:"ErrorInfo"`
+	ErrorCode    int    `json:"ErrorCode"`
+	MsgTime      int64  `json:"MsgTime"`
+	MsgSeq       int64  `json:"MsgSeq"`
+}
+
+type MemberAccount struct {
+	MemberAccount string `json:"Member_Account"`
+}
+
+type AddGroupMemberRequest struct {
+	GroupId    string          `json:"GroupId"`
+	MemberList []MemberAccount `json:"MemberList"`
+}
+
+type AddGroupMemberResponse struct {
+	ActionStatus string `json:"ActionStatus"`
+	ErrorInfo    string `json:"ErrorInfo"`
+	ErrorCode    int    `json:"ErrorCode"`
+	MemberList   []struct {
+		MemberAccount string `json:"Member_Account"`
+		Result        int    `json:"Result"`
+	} `json:"MemberList"`
+}

@@ -26,3 +26,31 @@ func TestSendTextMessage(t *testing.T) {
 	}
 	t.Logf("success")
 }
+
+func TestCreateNewGroup(t *testing.T) {
+	groupID, err := CreateNewGroup("oLbsZ63ONd3jndP9hcfsoycBzqOk", "fcdbd14ffa933c5622e48828e824c517", "712836823612312")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("success")
+	t.Logf(groupID)
+}
+
+func TestSendGroupMessage(t *testing.T) {
+	err := SendGroupMessage("@TGS#2HA3VPBIM", "fcdbd14ffa933c5622e48828e824c517", "你好，请问有什么可以帮您")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("success")
+}
+
+func TestAddGroupMember(t *testing.T) {
+	err := AddGroupMember("@TGS#2HA3VPBIM", "8f1475499c41ae3a7f891979a5d993a2")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("success")
+}

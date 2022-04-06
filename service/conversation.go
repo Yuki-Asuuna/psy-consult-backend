@@ -16,6 +16,7 @@ import (
 	"psy-consult-backend/utils/rabbitmq"
 	"psy-consult-backend/utils/redis"
 	"psy-consult-backend/utils/sessions"
+	"psy-consult-backend/utils/snowflake"
 	"strings"
 	"time"
 )
@@ -30,19 +31,27 @@ func AddConversation(c *gin.Context) {
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
 	counsellorID := params["counsellorID"].(string)
-	err := im_message.SendTextMessage(counsellorID, info.VisitorID, "你好，请问有什么可以帮您?")
+	conversationID := snowflake.GenID()
+	groupID, err := im_message.CreateNewGroup(info.VisitorID, counsellorID, helper.I642S(conversationID))
 	if err != nil {
 		logrus.Errorf(constant.Service+"AddConversation Failed, err= %v", err)
 		c.Error(exception.ServerError())
 		return
 	}
-	ID, err := database.AddConversation(counsellorID, info.VisitorID)
+	err = im_message.SendGroupMessage(groupID, counsellorID, "你好，请问有什么可以帮您？")
 	if err != nil {
 		logrus.Errorf(constant.Service+"AddConversation Failed, err= %v", err)
 		c.Error(exception.ServerError())
 		return
 	}
-	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", ID))
+	err = database.AddConversation(counsellorID, info.VisitorID, conversationID, groupID)
+	if err != nil {
+		logrus.Errorf(constant.Service+"AddConversation Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", conversationID))
 }
 
 func EndConversation(c *gin.Context) {

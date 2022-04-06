@@ -11,6 +11,7 @@ type Conversation struct {
 	Status             int64
 	IsHelped           int64
 	HelpedSupervisorID string
+	GroupID            string
 }
 
 func (Conversation) TableName() string {

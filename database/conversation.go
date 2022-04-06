@@ -5,24 +5,24 @@ import (
 	"github.com/sirupsen/logrus"
 	"psy-consult-backend/constant"
 	"psy-consult-backend/utils/mysql"
-	"psy-consult-backend/utils/snowflake"
 	"time"
 )
 
-func AddConversation(counsellorID string, visitorID string) (int64, error) {
+func AddConversation(counsellorID string, visitorID string, conversationID int64, groupID string) error {
 	conversation := Conversation{
-		ConversationID: snowflake.GenID(),
+		ConversationID: conversationID,
 		StartTime:      time.Now(),
 		CounsellorID:   counsellorID,
 		VisitorID:      visitorID,
 		Status:         0,
 		IsHelped:       0,
+		GroupID:        groupID,
 	}
 	if err := mysql.GetMySQLClient().Create(&conversation).Error; err != nil {
 		logrus.Errorf(constant.DAO+"AddConversation Failed, err= %v", err)
-		return 0, err
+		return err
 	}
-	return conversation.ConversationID, nil
+	return nil
 }
 
 func GetConversationByConversationID(conversationID int64) (*Conversation, error) {
