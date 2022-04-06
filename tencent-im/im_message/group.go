@@ -121,6 +121,7 @@ func AddGroupMember(groupID string, supervisorID string) error {
 		MemberList: []MemberAccount{
 			{MemberAccount: supervisorID},
 		},
+		Silence: 1,
 	}
 	body, err := json.Marshal(req_body)
 	if err != nil {

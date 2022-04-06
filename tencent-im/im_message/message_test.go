@@ -2,6 +2,7 @@ package im_message
 
 import (
 	"fmt"
+	"psy-consult-backend/utils/helper"
 	"testing"
 )
 
@@ -38,7 +39,18 @@ func TestCreateNewGroup(t *testing.T) {
 }
 
 func TestSendGroupMessage(t *testing.T) {
-	err := SendGroupMessage("@TGS#2HA3VPBIM", "fcdbd14ffa933c5622e48828e824c517", "你好，请问有什么可以帮您")
+	for i := 0; i < 20; i++ {
+		err := SendGroupMessage("@TGS#2P5MZQBII", "8f1475499c41ae3a7f891979a5d993a2", "知道了，我无能为力"+helper.I2S(i))
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		t.Logf("success")
+	}
+}
+
+func TestAddGroupMember(t *testing.T) {
+	err := AddGroupMember("@TGS#2P5MZQBII", "8f1475499c41ae3a7f891979a5d993a2")
 	if err != nil {
 		t.Error(err)
 		return
@@ -46,11 +58,11 @@ func TestSendGroupMessage(t *testing.T) {
 	t.Logf("success")
 }
 
-func TestAddGroupMember(t *testing.T) {
-	err := AddGroupMember("@TGS#2HA3VPBIM", "8f1475499c41ae3a7f891979a5d993a2")
+func TestGetAllGroupMessage(t *testing.T) {
+	resp, err := GetAllGroupMessage("@TGS#2P5MZQBII")
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	t.Logf("success")
+	fmt.Println(resp)
 }

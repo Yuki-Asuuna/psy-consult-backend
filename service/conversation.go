@@ -296,12 +296,7 @@ func ConversationDetail(c *gin.Context) {
 		c.JSON(http.StatusOK, utils.GenSuccessResponse(-2, "conversation does not exist", nil))
 		return
 	}
-	EndTime := conversationInfo.EndTime.Unix()
-	// 该会话尚未结束，当前时间作为EndTime
-	if conversationInfo.Status == 0 {
-		EndTime = time.Now().Unix()
-	}
-	res, err := im_message.SearchAllHistoryMessage(conversationInfo.VisitorID, conversationInfo.CounsellorID, conversationInfo.StartTime.Unix(), EndTime)
+	res, err := im_message.GetAllGroupMessage(conversationInfo.GroupID)
 	if err != nil {
 		logrus.Errorf(constant.Service+"ConversationExport Failed, err= %v", err)
 		c.Error(exception.ServerError())
@@ -324,7 +319,7 @@ func ConversationExport(c *gin.Context) {
 		c.JSON(http.StatusOK, utils.GenSuccessResponse(-2, "conversation does not exist", nil))
 		return
 	}
-	res, err := im_message.SearchAllHistoryMessage(conversationInfo.VisitorID, conversationInfo.CounsellorID, conversationInfo.StartTime.Unix(), conversationInfo.EndTime.Unix())
+	res, err := im_message.GetAllGroupMessage(conversationInfo.GroupID)
 	if err != nil {
 		logrus.Errorf(constant.Service+"ConversationExport Failed, err= %v", err)
 		c.Error(exception.ServerError())
@@ -333,16 +328,14 @@ func ConversationExport(c *gin.Context) {
 	// 设置列名 默认Sheet1
 	_ = excel.SetCellValue("Sheet1", "A1", "时间")
 	_ = excel.SetCellValue("Sheet1", "B1", "发送方")
-	_ = excel.SetCellValue("Sheet1", "C1", "接收方")
-	_ = excel.SetCellValue("Sheet1", "D1", "消息类型")
-	_ = excel.SetCellValue("Sheet1", "E1", "消息内容")
+	_ = excel.SetCellValue("Sheet1", "C1", "消息类型")
+	_ = excel.SetCellValue("Sheet1", "D1", "消息内容")
 	for index, msg := range res {
 		idx := helper.I2S(index + 2)
 		_ = excel.SetCellValue("Sheet1", "A"+idx, helper.Timestamp2S(msg.MsgTimeStamp))
 		_ = excel.SetCellValue("Sheet1", "B"+idx, msg.FromAccount)
-		_ = excel.SetCellValue("Sheet1", "C"+idx, msg.ToAccount)
-		_ = excel.SetCellValue("Sheet1", "D"+idx, msg.MsgBody[0].MsgType)
-		_ = excel.SetCellValue("Sheet1", "E"+idx, msg.MsgBody[0].MsgContent)
+		_ = excel.SetCellValue("Sheet1", "C"+idx, msg.MsgBody[0].MsgType)
+		_ = excel.SetCellValue("Sheet1", "D"+idx, msg.MsgBody[0].MsgContent)
 	}
 	fileName := "./excel-export/" + conversationID + ".xlsx"
 	err = excel.SaveAs(fileName)

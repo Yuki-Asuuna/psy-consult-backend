@@ -96,3 +96,87 @@ func SearchAllHistoryMessage(fromAccount string, toAccount string, minTime int64
 	sort.Sort(MessageInfoSlice(res))
 	return res, nil
 }
+
+const (
+	ReqMsgNumber = 1000 // 全量
+)
+
+func GetGroupMessage(groupID string, seq int64) (*GetGroupMessageHistoryResponse, error) {
+	url := "https://console.tim.qq.com/v4/group_open_http_svc/group_msg_get_simple"
+	req_body := &GetGroupMessageHistoryRequest{
+		GroupId:      groupID,
+		ReqMsgNumber: ReqMsgNumber,
+	}
+	if seq != -1 {
+		req_body.ReqMsgSeq = seq
+	}
+	body, err := json.Marshal(req_body)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	query_params := req.URL.Query()
+	query_params.Add("sdkappid", helper.I2S(tencent_im.SDKAppID))
+	query_params.Add("identifier", tencent_im.AdminAccount)
+	user_sig, _ := usersig.GenUserSig(tencent_im.SDKAppID, tencent_im.SDKSecretKey, tencent_im.AdminAccount, expire_time)
+	query_params.Add("usersig", user_sig)
+	query_params.Add("random", helper.I642S(int64(rand.Uint32())))
+	query_params.Add("contenttype", "json")
+	req.URL.RawQuery = query_params.Encode()
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	obj := &GetGroupMessageHistoryResponse{}
+	err = json.Unmarshal(content, obj)
+	if err != nil {
+		return nil, err
+	}
+	if obj.ErrorCode != 0 {
+		return nil, errors.New(obj.ErrorInfo)
+	}
+	// success
+	return obj, nil
+}
+
+func min(a, b int64) int64 {
+	if a > b {
+		return b
+	} else {
+		return a
+	}
+}
+
+func GetAllGroupMessage(groupID string) ([]GroupMessageHistory, error) {
+	res := make([]GroupMessageHistory, 0)
+	var seq int64 = -1
+	for {
+		resp, err := GetGroupMessage(groupID, seq)
+		if err != nil {
+			logrus.Warn(constant.REST+"GetAllGroupMessage Failed, err= %v", err)
+			return nil, err
+		}
+		var mseq int64 = 1000000000
+		for _, msg := range resp.RspMsgList {
+			mseq = min(mseq, msg.MsgSeq)
+		}
+		res = append(res, resp.RspMsgList...)
+		if resp.IsFinished == 1 {
+			break
+		}
+		seq = mseq
+	}
+	// 根据timestamp排序
+	sort.Sort(GroupMessageHistorySlice(res))
+	return res, nil
+}

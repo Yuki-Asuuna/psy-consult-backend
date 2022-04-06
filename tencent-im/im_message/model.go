@@ -116,6 +116,7 @@ type MemberAccount struct {
 
 type AddGroupMemberRequest struct {
 	GroupId    string          `json:"GroupId"`
+	Silence    int             `json:"Silence"`
 	MemberList []MemberAccount `json:"MemberList"`
 }
 
@@ -128,3 +129,37 @@ type AddGroupMemberResponse struct {
 		Result        int    `json:"Result"`
 	} `json:"MemberList"`
 }
+
+type GetGroupMessageHistoryRequest struct {
+	GroupId      string `json:"GroupId"`
+	ReqMsgSeq    int64  `json:"ReqMsgSeq,omitempty"`
+	ReqMsgNumber int64  `json:"ReqMsgNumber"`
+}
+
+type GroupMessageHistory struct {
+	FromAccount string `json:"From_Account"`
+	IsPlaceMsg  int    `json:"IsPlaceMsg"`
+	MsgBody     []struct {
+		MsgContent TextMessageContent `json:"MsgContent"`
+		MsgType    string             `json:"MsgType"`
+	} `json:"MsgBody"`
+	MsgPriority  int   `json:"MsgPriority"`
+	MsgRandom    int64 `json:"MsgRandom"`
+	MsgSeq       int64 `json:"MsgSeq"`
+	MsgTimeStamp int64 `json:"MsgTimeStamp"`
+}
+
+type GetGroupMessageHistoryResponse struct {
+	ActionStatus string                `json:"ActionStatus"`
+	ErrorInfo    string                `json:"ErrorInfo"`
+	ErrorCode    int                   `json:"ErrorCode"`
+	GroupId      string                `json:"GroupId"`
+	IsFinished   int                   `json:"IsFinished"`
+	RspMsgList   []GroupMessageHistory `json:"RspMsgList"`
+}
+
+type GroupMessageHistorySlice []GroupMessageHistory
+
+func (m GroupMessageHistorySlice) Len() int           { return len(m) }
+func (m GroupMessageHistorySlice) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+func (m GroupMessageHistorySlice) Less(i, j int) bool { return m[i].MsgSeq < m[j].MsgSeq }
