@@ -50,8 +50,11 @@ func AddConversation(c *gin.Context) {
 		c.Error(exception.ServerError())
 		return
 	}
-
-	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", conversationID))
+	resp := api.AddConversationResponse{
+		ConversationID: conversationID,
+		GroupID:        groupID,
+	}
+	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
 }
 
 func EndConversation(c *gin.Context) {

@@ -33,3 +33,8 @@ type NStatResponse struct {
 	DateList  []string `json:"dateList"`
 	CountList []int    `json:"countList"`
 }
+
+type AddConversationResponse struct {
+	ConversationID int64  `json:"conversationID"`
+	GroupID        string `json:"groupID"`
+}
