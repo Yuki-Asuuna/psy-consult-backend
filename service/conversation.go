@@ -51,7 +51,7 @@ func AddConversation(c *gin.Context) {
 		return
 	}
 	resp := api.AddConversationResponse{
-		ConversationID: conversationID,
+		ConversationID: helper.I642S(conversationID),
 		GroupID:        groupID,
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
@@ -176,7 +176,7 @@ func ConversationSearch(c *gin.Context) {
 	resp := make([]*api.ConversationSearchResponse, 0)
 	for _, conv := range conversations {
 		t := &api.ConversationSearchResponse{
-			ConversationID: conv.ConversationID,
+			ConversationID: helper.I642S(conv.ConversationID),
 			StartTime:      conv.StartTime,
 			EndTime:        conv.EndTime,
 			Status:         conv.Status,
@@ -265,8 +265,8 @@ func ConversationSearch(c *gin.Context) {
 		}
 		if evaluation != nil {
 			t.Evaluation = &api.EvaluationInfoResponse{
-				EvaluationID:   evaluation.EvaluationID,
-				ConversationID: evaluation.ConversationID,
+				EvaluationID:   helper.I642S(evaluation.EvaluationID),
+				ConversationID: helper.I642S(evaluation.ConversationID),
 				Rating:         evaluation.Rating,
 				Evaluation:     evaluation.Evaluation,
 			}
