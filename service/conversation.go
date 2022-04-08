@@ -347,8 +347,8 @@ func ConversationExport(c *gin.Context) {
 		c.Error(exception.ServerError())
 		return
 	}
-	c.File(fileName)
-	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
+	c.FileAttachment(fileName, conversationID+".xlsx")
+	// c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
 }
 
 func TodayStat(c *gin.Context) {
