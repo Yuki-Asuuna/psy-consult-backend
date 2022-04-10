@@ -32,3 +32,20 @@ type AccountDeleteResponse struct {
 	ErrorInfo    string             `json:"ErrorInfo"`
 	ResultItem   []DeleteResultItem `json:"ResultItem"`
 }
+
+type ProfileItem struct {
+	Tag   string `json:"tag"`
+	Value string `json:"value"`
+}
+
+type PortraitSetRequest struct {
+	FromAccount string        `json:"From_Account"`
+	ProfileItem []ProfileItem `json:"ProfileItem"`
+}
+
+type PortraitSetResponse struct {
+	ActionStatus string `json:"ActionStatus"`
+	ErrorCode    int    `json:"ErrorCode"`
+	ErrorInfo    string `json:"ErrorInfo"`
+	ErrorDisplay string `json:"ErrorDisplay"`
+}

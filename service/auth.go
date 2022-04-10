@@ -254,6 +254,12 @@ func AvatarUpload(c *gin.Context) {
 		c.Error(exception.ServerError())
 		return
 	}
+	err = account_manage.UpdateAccountAvatar(user.CounsellorID, url)
+	if err != nil {
+		logrus.Error(constant.Service+"AvatarUpload Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
 }
 

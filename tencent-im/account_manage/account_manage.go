@@ -115,3 +115,48 @@ func DeleteIMSDKAccount(userID string) error {
 	// success
 	return nil
 }
+
+func UpdateAccountAvatar(userID string, avatar string) error {
+	url := "https://console.tim.qq.com/v4/profile/portrait_set"
+	req_body := &PortraitSetRequest{
+		FromAccount: userID,
+		ProfileItem: []ProfileItem{{Tag: "Tag_Profile_IM_Image", Value: avatar}},
+	}
+	body, err := json.Marshal(req_body)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	query_params := req.URL.Query()
+	query_params.Add("sdkappid", helper.I2S(tencent_im.SDKAppID))
+	query_params.Add("identifier", tencent_im.AdminAccount)
+	user_sig, _ := usersig.GenUserSig(tencent_im.SDKAppID, tencent_im.SDKSecretKey, tencent_im.AdminAccount, expire_time)
+	query_params.Add("usersig", user_sig)
+	query_params.Add("random", helper.I642S(int64(rand.Uint32())))
+	query_params.Add("contenttype", "json")
+	req.URL.RawQuery = query_params.Encode()
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	obj := &PortraitSetResponse{}
+	err = json.Unmarshal(content, obj)
+	if err != nil {
+		return err
+	}
+	if obj.ErrorCode != 0 {
+		return errors.New(obj.ErrorInfo)
+	}
+	// success
+	return nil
+}
