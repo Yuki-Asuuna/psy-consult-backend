@@ -220,6 +220,16 @@ func AddBinding(c *gin.Context) {
 			c.JSON(http.StatusOK, utils.GenSuccessResponse(-2, "非法ID", nil))
 			return
 		}
+		ok, err := database.CheckBindingExist(counsellorID, supervisorID)
+		if err != nil {
+			logrus.Error(constant.Service+"AddBinding Failed, err= %v", err)
+			c.Error(exception.ServerError())
+			return
+		}
+		if ok {
+			c.JSON(http.StatusOK, utils.GenSuccessResponse(-2, "重复绑定", nil))
+			return
+		}
 		err = database.AddBinding(counsellorID, supervisorID)
 		if err != nil {
 			logrus.Error(constant.Service+"AddBinding Failed, err= %v", err)

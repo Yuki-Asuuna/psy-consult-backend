@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"psy-consult-backend/constant"
 	"psy-consult-backend/utils/mysql"
@@ -37,4 +38,17 @@ func GetBindingByCounsellorID(counsellorID string) ([]*Binding, error) {
 		return nil, err
 	}
 	return binding, nil
+}
+
+func CheckBindingExist(counsellorID string, supervisorID string) (bool, error) {
+	binding := &Binding{}
+	err := mysql.GetMySQLClient().Where("counsellor_id = (?) and supervisor_id = (?)", counsellorID, supervisorID).First(binding).Error
+	if err == gorm.ErrRecordNotFound {
+		return false, nil
+	}
+	if err != nil {
+		logrus.Errorf(constant.DAO+"CheckBindingExist Failed, err= %v", err)
+		return false, err
+	}
+	return true, nil
 }
