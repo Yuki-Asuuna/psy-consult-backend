@@ -368,9 +368,11 @@ func TodayStat(c *gin.Context) {
 		return
 	}
 	var d time.Duration
+	var processingCnt int
 	for _, c := range lst {
 		if c.Status == 0 {
 			d += time.Now().Sub(c.StartTime)
+			processingCnt += 1
 			continue
 		}
 		delta := c.EndTime.Sub(c.StartTime)
@@ -381,10 +383,11 @@ func TodayStat(c *gin.Context) {
 	minute := int((seconds - hour*3600) / 60)
 	second := seconds - hour*3600 - minute*60
 	resp := api.TodayStatResponse{
-		TotalCount: len(lst),
-		Hour:       hour,
-		Minute:     minute,
-		Second:     second,
+		TotalCount:        len(lst),
+		Hour:              hour,
+		Minute:            minute,
+		Second:            second,
+		InConversationCnt: processingCnt,
 	}
 	c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", resp))
 }
