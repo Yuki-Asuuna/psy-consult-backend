@@ -13,7 +13,7 @@ const (
 	redis_address  = "127.0.0.1:6379"
 	redis_password = ""
 	redis_network  = "tcp"
-	expire_time    = time.Minute * 20
+	expire_time    = time.Hour * 12
 	online_prefix  = "Online_Account_"
 )
 
