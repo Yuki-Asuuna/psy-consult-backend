@@ -11,6 +11,7 @@ import (
 func AddConversation(counsellorID string, visitorID string, conversationID int64, groupID string) error {
 	conversation := Conversation{
 		ConversationID: conversationID,
+		EndTime:        time.Unix(0, 0),
 		StartTime:      time.Now(),
 		CounsellorID:   counsellorID,
 		VisitorID:      visitorID,
