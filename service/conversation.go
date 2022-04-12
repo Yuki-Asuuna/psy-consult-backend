@@ -369,6 +369,10 @@ func TodayStat(c *gin.Context) {
 	}
 	var d time.Duration
 	for _, c := range lst {
+		if c.Status == 0 {
+			d += time.Now().Sub(c.StartTime)
+			continue
+		}
 		delta := c.EndTime.Sub(c.StartTime)
 		d += delta
 	}
@@ -403,6 +407,10 @@ func TodayStatAll(c *gin.Context) {
 	}
 	var d time.Duration
 	for _, c := range lst {
+		if c.Status == 0 {
+			d += time.Now().Sub(c.StartTime)
+			continue
+		}
 		delta := c.EndTime.Sub(c.StartTime)
 		d += delta
 	}
