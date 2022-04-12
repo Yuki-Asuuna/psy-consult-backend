@@ -24,10 +24,11 @@ type TodayStatResponse struct {
 }
 
 type TodayStatAllResponse struct {
-	TotalCount int `json:"totalCount"`
-	Hour       int `json:"hour"`
-	Minute     int `json:"minute"`
-	Second     int `json:"second"`
+	TotalCount        int `json:"totalCount"`
+	Hour              int `json:"hour"`
+	Minute            int `json:"minute"`
+	Second            int `json:"second"`
+	InConversationCnt int `json:"inConversationCnt"`
 }
 
 type NStatResponse struct {
