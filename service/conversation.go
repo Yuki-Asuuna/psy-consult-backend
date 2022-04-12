@@ -305,6 +305,47 @@ func ConversationDetail(c *gin.Context) {
 		c.Error(exception.ServerError())
 		return
 	}
+	counsellorList, err := database.GetCounsellorUserList(0, 999999, 0, "")
+	if err != nil {
+		logrus.Errorf(constant.Service+"ConversationExport Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	counsellorIDs := make([]string, 0)
+	for _, counsellor := range counsellorList {
+		counsellorIDs = append(counsellorIDs, counsellor.CounsellorID)
+	}
+	cMap, err := database.GetCounsellorUsersByCounsellorIDs(counsellorIDs)
+	if err != nil {
+		logrus.Errorf(constant.Service+"ConversationExport Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+
+	visitorList, err := database.GetVisitorUserList(0, 999999, "")
+	if err != nil {
+		logrus.Errorf(constant.Service+"ConversationExport Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+
+	vMap := make(map[string]*database.VisitorUser)
+	for _, visitor := range visitorList {
+		vMap[visitor.VisitorID] = visitor
+	}
+
+	for idx, msg := range res {
+		counsellor, ok := cMap[msg.FromAccount]
+		// is visitor
+		if !ok {
+			visitor, ok := vMap[msg.FromAccount]
+			if ok {
+				res[idx].FromAccount = visitor.Name
+			}
+		} else {
+			res[idx].FromAccount = counsellor.Name
+		}
+	}
 	c.JSON(0, utils.GenSuccessResponse(0, "OK", res))
 }
 
