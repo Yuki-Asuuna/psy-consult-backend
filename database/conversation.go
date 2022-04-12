@@ -36,6 +36,16 @@ func GetConversationByConversationID(conversationID int64) (*Conversation, error
 	return conversation, nil
 }
 
+func GetConversationByGroupID(groupID string) (*Conversation, error) {
+	conversation := &Conversation{}
+	err := mysql.GetMySQLClient().Where("group_id = (?)", groupID).Find(conversation).Error
+	if err != nil {
+		logrus.Errorf(constant.DAO+"GetConversationByGroupID Failed, err= %v", err)
+		return nil, err
+	}
+	return conversation, nil
+}
+
 func UpdateConversationByConversationID(conversationID int64, updateMap map[string]interface{}) error {
 	err := mysql.GetMySQLClient().Model(&Conversation{}).Where("conversation_id = (?)", conversationID).Update(updateMap).Error
 	if err != nil {

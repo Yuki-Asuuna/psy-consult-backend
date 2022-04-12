@@ -18,7 +18,7 @@ func CreateNewGroup(visitorAccount, counsellorAccount, groupName string) (string
 
 	req_body := &CreateGroupRequest{
 		Name:       groupName,
-		Type:       "Public",
+		Type:       "ChatRoom",
 		MemberList: []GroupMember{{MemberAccount: visitorAccount}, {MemberAccount: counsellorAccount}},
 	}
 

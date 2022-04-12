@@ -143,10 +143,11 @@ type GroupMessageHistory struct {
 		MsgContent TextMessageContent `json:"MsgContent"`
 		MsgType    string             `json:"MsgType"`
 	} `json:"MsgBody"`
-	MsgPriority  int   `json:"MsgPriority"`
-	MsgRandom    int64 `json:"MsgRandom"`
-	MsgSeq       int64 `json:"MsgSeq"`
-	MsgTimeStamp int64 `json:"MsgTimeStamp"`
+	MsgPriority  int    `json:"MsgPriority"`
+	MsgRandom    int64  `json:"MsgRandom"`
+	MsgSeq       int64  `json:"MsgSeq"`
+	MsgTimeStamp int64  `json:"MsgTimeStamp"`
+	Avatar       string `json:"Avatar"`
 }
 
 type GetGroupMessageHistoryResponse struct {

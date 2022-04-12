@@ -83,7 +83,7 @@ func Supervise(c *gin.Context) {
 	// counsellor := sessions.GetCounsellorInfoBySession(c)
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
-	conversationID := helper.S2I64(params["conversationID"].(string))
+	groupID := params["groupID"].(string)
 	supervisorID := params["supervisorID"].(string)
 	// 判断supervisor是否存在
 	supervisor, err := database.GetCounsellorUserByCounsellorID(supervisorID)
@@ -97,7 +97,7 @@ func Supervise(c *gin.Context) {
 		return
 	}
 	// 获取会话信息
-	conversation, err := database.GetConversationByConversationID(conversationID)
+	conversation, err := database.GetConversationByGroupID(groupID)
 	if err != nil {
 		logrus.Errorf(constant.Service+"Supervise Failed, err= %v", err)
 		c.Error(exception.ParameterError())
@@ -344,6 +344,7 @@ func ConversationDetail(c *gin.Context) {
 			}
 		} else {
 			res[idx].FromAccount = counsellor.Name
+			res[idx].Avatar = counsellor.Avatar
 		}
 	}
 	c.JSON(0, utils.GenSuccessResponse(0, "OK", res))
