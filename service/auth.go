@@ -169,6 +169,10 @@ func WxLogin(c *gin.Context) {
 			return
 		}
 	}
+	if visitor.Status == 1 {
+		c.JSON(http.StatusOK, utils.GenSuccessResponse(-3, "用户被禁用", nil))
+		return
+	}
 	sessionKey := resp.SessionKey
 	err = redis.SetWxSessionKey(sessionKey, openID)
 	if err != nil {
