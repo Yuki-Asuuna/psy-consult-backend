@@ -9,6 +9,7 @@ import (
 	"psy-consult-backend/database"
 	"psy-consult-backend/exception"
 	"psy-consult-backend/tencent-im/account_manage"
+	"psy-consult-backend/tencent-im/im_friend"
 	"psy-consult-backend/utils"
 	"psy-consult-backend/utils/helper"
 	"psy-consult-backend/utils/redis"
@@ -236,6 +237,12 @@ func AddBinding(c *gin.Context) {
 			c.Error(exception.ServerError())
 			return
 		}
+		err = im_friend.AddFriend(counsellorID, supervisorID)
+		if err != nil {
+			logrus.Error(constant.Service+"AddBinding Failed, err= %v", err)
+			c.Error(exception.ServerError())
+			return
+		}
 		c.JSON(http.StatusOK, utils.GenSuccessResponse(0, "OK", nil))
 	} else {
 		c.JSON(http.StatusOK, utils.GenSuccessResponse(-3, "权限错误", nil))
@@ -247,7 +254,19 @@ func DeleteBinding(c *gin.Context) {
 	params := make(map[string]interface{})
 	c.BindJSON(&params)
 	bindingID := int64(params["bindingID"].(float64))
-	err := database.DeleteBinding(bindingID)
+	binding, err := database.GetBindingByBindingID(bindingID)
+	if err != nil {
+		c.Error(exception.ServerError())
+		logrus.Errorf(constant.Service+"DeleteBinding Failed, err= %v", err)
+		return
+	}
+	err = database.DeleteBinding(bindingID)
+	if err != nil {
+		c.Error(exception.ServerError())
+		logrus.Errorf(constant.Service+"DeleteBinding Failed, err= %v", err)
+		return
+	}
+	err = im_friend.DeleteFriend(binding.SupervisorID, binding.CounsellorID)
 	if err != nil {
 		c.Error(exception.ServerError())
 		logrus.Errorf(constant.Service+"DeleteBinding Failed, err= %v", err)

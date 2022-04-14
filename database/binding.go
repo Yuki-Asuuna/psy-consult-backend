@@ -52,3 +52,16 @@ func CheckBindingExist(counsellorID string, supervisorID string) (bool, error) {
 	}
 	return true, nil
 }
+
+func GetBindingByBindingID(bindingID int64) (*Binding, error) {
+	binding := &Binding{}
+	err := mysql.GetMySQLClient().Where("binding_id = (?)", bindingID).First(binding).Error
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		logrus.Errorf(constant.DAO+"GetBindingByBindingID Failed, err= %v", err)
+		return nil, err
+	}
+	return binding, nil
+}
