@@ -15,7 +15,7 @@ const (
 	redis_network   = "tcp"
 	redis_size      = 10
 	redis_secretkey = "secret key"
-	redis_maxage    = 20 * 60
+	redis_maxage    = 12 * 60 * 60
 )
 
 func SessionInit() error {
