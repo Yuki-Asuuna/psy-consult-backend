@@ -20,7 +20,7 @@ func CreateNewGroup(visitor *database.VisitorUser, counsellor *database.Counsell
 
 	visitorAccount := visitor.VisitorID
 	counsellorAccount := counsellor.CounsellorID
-	groupName := fmt.Sprintf("【%s,%s】%s", visitor.Name, counsellor.Name, groupID)
+	groupName := fmt.Sprintf("【%s,%s】", visitor.Name, counsellor.Name)
 
 	req_body := &CreateGroupRequest{
 		Name:       groupName,
