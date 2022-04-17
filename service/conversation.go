@@ -32,7 +32,13 @@ func AddConversation(c *gin.Context) {
 	c.BindJSON(&params)
 	counsellorID := params["counsellorID"].(string)
 	conversationID := snowflake.GenID()
-	groupID, err := im_message.CreateNewGroup(info.VisitorID, counsellorID, helper.I642S(conversationID))
+	counsellor, err := database.GetCounsellorUserByCounsellorID(counsellorID)
+	if err != nil {
+		logrus.Errorf(constant.Service+"AddConversation Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	groupID, err := im_message.CreateNewGroup(info, counsellor, helper.I642S(conversationID))
 	if err != nil {
 		logrus.Errorf(constant.Service+"AddConversation Failed, err= %v", err)
 		c.Error(exception.ServerError())
@@ -71,6 +77,12 @@ func EndConversation(c *gin.Context) {
 		"end_time": time.Now(),
 		"status":   1,
 	})
+	if err != nil {
+		logrus.Errorf(constant.Service+"EndConversation Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	err = im_message.SendGroupMessage(conversation.GroupID, conversation.VisitorID, "用户已经结束咨询")
 	if err != nil {
 		logrus.Errorf(constant.Service+"EndConversation Failed, err= %v", err)
 		c.Error(exception.ServerError())

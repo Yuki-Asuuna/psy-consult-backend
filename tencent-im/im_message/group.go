@@ -4,17 +4,23 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"psy-consult-backend/database"
 	tencent_im "psy-consult-backend/tencent-im"
 	"psy-consult-backend/tencent-im/usersig"
 	"psy-consult-backend/utils/helper"
 )
 
-func CreateNewGroup(visitorAccount, counsellorAccount, groupName string) (string, error) {
+func CreateNewGroup(visitor *database.VisitorUser, counsellor *database.CounsellorUser, groupID string) (string, error) {
 	// https://console.tim.qq.com/v4/group_open_http_svc/create_group?sdkappid=88888888&identifier=admin&usersig=xxx&random=99999999&contenttype=json
 	url := "https://console.tim.qq.com/v4/group_open_http_svc/create_group"
+
+	visitorAccount := visitor.VisitorID
+	counsellorAccount := counsellor.CounsellorID
+	groupName := fmt.Sprintf("【%s,%s】%s", visitor.Name, counsellor.Name, groupID)
 
 	req_body := &CreateGroupRequest{
 		Name:       groupName,
