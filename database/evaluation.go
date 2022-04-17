@@ -33,3 +33,17 @@ func GetEvaluationByConversationID(conversationID int64) (*Evaluation, error) {
 	}
 	return evaluation, nil
 }
+
+func GetEvaluationsByConversationIDs(conversationIDs []int64) (map[int64]*Evaluation, error) {
+	ret := make(map[int64]*Evaluation)
+	evaluations := make([]*Evaluation, 0)
+	err := mysql.GetMySQLClient().Where("conversation_id in (?)", conversationIDs).Find(&evaluations).Error
+	if err != nil {
+		logrus.Errorf(constant.DAO+"GetEvaluationsByConversationIDs Failed, err= %v", err)
+		return nil, err
+	}
+	for _, e := range evaluations {
+		ret[e.ConversationID] = e
+	}
+	return ret, nil
+}

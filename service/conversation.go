@@ -166,6 +166,7 @@ func ConversationSearch(c *gin.Context) {
 
 	counsellorName = c.DefaultQuery("counsellorName", "")
 	visitorName = c.DefaultQuery("visitorName", "")
+	conversationIDList := make([]int64, 0)
 
 	conversations, err := database.GetConversationList(page, size, startTime, endTime)
 	if err != nil {
@@ -173,6 +174,46 @@ func ConversationSearch(c *gin.Context) {
 		c.Error(exception.ServerError())
 		return
 	}
+	for _, conv := range conversations {
+		conversationIDList = append(conversationIDList, conv.ConversationID)
+	}
+
+	evaluationMap, err := database.GetEvaluationsByConversationIDs(conversationIDList)
+	if err != nil {
+		logrus.Errorf(constant.Service+"ConversationSearch Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+
+	counsellorList, err := database.GetCounsellorUserList(0, 999999, 0, "")
+	if err != nil {
+		logrus.Errorf(constant.Service+"ConversationExport Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+	counsellorIDs := make([]string, 0)
+	for _, counsellor := range counsellorList {
+		counsellorIDs = append(counsellorIDs, counsellor.CounsellorID)
+	}
+	cMap, err := database.GetCounsellorUsersByCounsellorIDs(counsellorIDs)
+	if err != nil {
+		logrus.Errorf(constant.Service+"ConversationExport Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+
+	visitorList, err := database.GetVisitorUserList(0, 999999, "")
+	if err != nil {
+		logrus.Errorf(constant.Service+"ConversationExport Failed, err= %v", err)
+		c.Error(exception.ServerError())
+		return
+	}
+
+	vMap := make(map[string]*database.VisitorUser)
+	for _, visitor := range visitorList {
+		vMap[visitor.VisitorID] = visitor
+	}
+
 	resp := make([]*api.ConversationSearchResponse, 0)
 	for _, conv := range conversations {
 		t := &api.ConversationSearchResponse{
@@ -183,87 +224,100 @@ func ConversationSearch(c *gin.Context) {
 			IsHelped:       conv.IsHelped,
 			GroupID:        conv.GroupID,
 		}
-		counsellor, err := database.GetCounsellorUserByCounsellorID(conv.CounsellorID)
-		if err != nil {
-			logrus.Errorf(constant.Service+"ConversationSearch Failed, err= %v", err)
-			c.Error(exception.ServerError())
-			return
-		}
-		t.Counsellor = &api.CounsellorInfoResponse{
-			CounsellorID:   counsellor.CounsellorID,
-			Username:       counsellor.Username,
-			Name:           counsellor.Name,
-			Role:           counsellor.Role,
-			Status:         counsellor.Status,
-			Gender:         counsellor.Gender,
-			Age:            counsellor.Age,
-			IdentityNumber: counsellor.IdentityNumber,
-			PhoneNumber:    counsellor.PhoneNumber,
-			LastLogin:      counsellor.LastLogin,
-			Avatar:         counsellor.Avatar,
-			Email:          counsellor.Email,
-			Title:          counsellor.Title,
-			Department:     counsellor.Department,
-			Qualification:  counsellor.Qualification,
-			Introduction:   counsellor.Introduction,
-			MaxConsults:    counsellor.MaxConsults,
+		//counsellor, err := database.GetCounsellorUserByCounsellorID(conv.CounsellorID)
+		//if err != nil {
+		//	logrus.Errorf(constant.Service+"ConversationSearch Failed, err= %v", err)
+		//	c.Error(exception.ServerError())
+		//	return
+		//}
+		counsellor, ok := cMap[conv.CounsellorID]
+		if ok {
+			t.Counsellor = &api.CounsellorInfoResponse{
+				CounsellorID:   counsellor.CounsellorID,
+				Username:       counsellor.Username,
+				Name:           counsellor.Name,
+				Role:           counsellor.Role,
+				Status:         counsellor.Status,
+				Gender:         counsellor.Gender,
+				Age:            counsellor.Age,
+				IdentityNumber: counsellor.IdentityNumber,
+				PhoneNumber:    counsellor.PhoneNumber,
+				LastLogin:      counsellor.LastLogin,
+				Avatar:         counsellor.Avatar,
+				Email:          counsellor.Email,
+				Title:          counsellor.Title,
+				Department:     counsellor.Department,
+				Qualification:  counsellor.Qualification,
+				Introduction:   counsellor.Introduction,
+				MaxConsults:    counsellor.MaxConsults,
+			}
 		}
 
-		visitor, err := database.GetVisitorUserByVisitorID(conv.VisitorID)
-		if err != nil {
-			logrus.Errorf(constant.Service+"ConversationSearch Failed, err= %v", err)
-			c.Error(exception.ServerError())
-			return
-		}
-		t.Visitor = &api.VisitorInfoResponse{
-			VisitorID:        conv.VisitorID,
-			Username:         visitor.Username,
-			Name:             visitor.Name,
-			Status:           visitor.Status,
-			Gender:           visitor.Gender,
-			PhoneNumber:      visitor.PhoneNumber,
-			LastLogin:        visitor.LastLogin,
-			Email:            visitor.Email,
-			EmergencyContact: visitor.EmergencyContact,
-			EmergencyPhone:   visitor.EmergencyPhone,
-			HasAgreed:        visitor.HasAgreed,
+		//visitor, err := database.GetVisitorUserByVisitorID(conv.VisitorID)
+		//if err != nil {
+		//	logrus.Errorf(constant.Service+"ConversationSearch Failed, err= %v", err)
+		//	c.Error(exception.ServerError())
+		//	return
+		//}
+		visitor, ok := vMap[conv.VisitorID]
+		if ok {
+			t.Visitor = &api.VisitorInfoResponse{
+				VisitorID:        conv.VisitorID,
+				Username:         visitor.Username,
+				Name:             visitor.Name,
+				Status:           visitor.Status,
+				Gender:           visitor.Gender,
+				PhoneNumber:      visitor.PhoneNumber,
+				LastLogin:        visitor.LastLogin,
+				Email:            visitor.Email,
+				EmergencyContact: visitor.EmergencyContact,
+				EmergencyPhone:   visitor.EmergencyPhone,
+				HasAgreed:        visitor.HasAgreed,
+			}
 		}
 
 		if conv.IsHelped == 1 {
-			supervisor, err := database.GetCounsellorUserByCounsellorID(conv.HelpedSupervisorID)
-			if err != nil {
-				logrus.Errorf(constant.Service+"ConversationSearch Failed, err= %v", err)
-				c.Error(exception.ServerError())
-				return
-			}
-			t.Supervisor = &api.CounsellorInfoResponse{
-				CounsellorID:   supervisor.CounsellorID,
-				Username:       supervisor.Username,
-				Name:           supervisor.Name,
-				Role:           supervisor.Role,
-				Status:         supervisor.Status,
-				Gender:         supervisor.Gender,
-				Age:            supervisor.Age,
-				IdentityNumber: supervisor.IdentityNumber,
-				PhoneNumber:    supervisor.PhoneNumber,
-				LastLogin:      supervisor.LastLogin,
-				Avatar:         supervisor.Avatar,
-				Email:          supervisor.Email,
-				Title:          supervisor.Title,
-				Department:     supervisor.Department,
-				Qualification:  supervisor.Qualification,
-				Introduction:   supervisor.Introduction,
-				MaxConsults:    supervisor.MaxConsults,
-				IsOnline:       redis.CheckOnline(supervisor.CounsellorID),
+			//supervisor, err := database.GetCounsellorUserByCounsellorID(conv.HelpedSupervisorID)
+			//if err != nil {
+			//	logrus.Errorf(constant.Service+"ConversationSearch Failed, err= %v", err)
+			//	c.Error(exception.ServerError())
+			//	return
+			//}
+			supervisor, ok := cMap[conv.HelpedSupervisorID]
+			if ok {
+				t.Supervisor = &api.CounsellorInfoResponse{
+					CounsellorID:   supervisor.CounsellorID,
+					Username:       supervisor.Username,
+					Name:           supervisor.Name,
+					Role:           supervisor.Role,
+					Status:         supervisor.Status,
+					Gender:         supervisor.Gender,
+					Age:            supervisor.Age,
+					IdentityNumber: supervisor.IdentityNumber,
+					PhoneNumber:    supervisor.PhoneNumber,
+					LastLogin:      supervisor.LastLogin,
+					Avatar:         supervisor.Avatar,
+					Email:          supervisor.Email,
+					Title:          supervisor.Title,
+					Department:     supervisor.Department,
+					Qualification:  supervisor.Qualification,
+					Introduction:   supervisor.Introduction,
+					MaxConsults:    supervisor.MaxConsults,
+					IsOnline:       redis.CheckOnline(supervisor.CounsellorID),
+				}
 			}
 		}
-		evaluation, err := database.GetEvaluationByConversationID(conv.ConversationID)
-		if err != nil {
-			logrus.Errorf(constant.Service+"ConversationSearch Failed, err= %v", err)
-			c.Error(exception.ServerError())
-			return
-		}
-		if evaluation != nil {
+
+		//evaluation, err := database.GetEvaluationByConversationID(conv.ConversationID)
+		//if err != nil {
+		//	logrus.Errorf(constant.Service+"ConversationSearch Failed, err= %v", err)
+		//	c.Error(exception.ServerError())
+		//	return
+		//}
+
+		evaluation, ok := evaluationMap[conv.ConversationID]
+
+		if ok {
 			t.Evaluation = &api.EvaluationInfoResponse{
 				EvaluationID:   helper.I642S(evaluation.EvaluationID),
 				ConversationID: helper.I642S(evaluation.ConversationID),
